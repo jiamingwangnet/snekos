@@ -2,7 +2,7 @@ ENTRY(start)
 
 SECTIONS
 {
-    . = 1M /* start 1 megabyte in */
+    . = 1M; /* start 1 megabyte in */
 
     .boot :
 	{
