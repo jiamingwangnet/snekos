@@ -1,2 +1,17 @@
-build: src/boot/main.asm
-	nasm -o build/obj/obj.o src/boot/main.asm
+ASM_SOURCE_FILES := $(shell find src/boot/ -name *.asm)
+ASM_OBJ_FILES := $(patsubst src/boot/%.asm, build/boot/%.o, $(ASM_SOURCE_FILES))
+
+C_SOURCE_FILES := $(shell find src/kernel/ -name *.c)
+C_OBJ_FILES := $(patsubst src/kernel/%.c, build/kernel/%.o, $(C_SOURCE_FILES))
+
+$(C_OBJ_FILES): build/kernel/%.o : src/kernel/%.c
+	mkdir -p $(dir $@) && \
+	gcc -m64 -ffreestanding -c $(patsubst build/kernel/%.o, src/kernel/%.c, $@) -o $@
+
+$(ASM_OBJ_FILES): build/boot/%.o : src/boot/%.asm
+	mkdir -p $(dir $@) && \
+	nasm -f elf64 $(patsubst build/boot/%.o, src/boot/%.asm, $@) -o $@
+
+.PHONY: build
+build: $(C_OBJ_FILES) $(ASM_OBJ_FILES)
+	echo done
