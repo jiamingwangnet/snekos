@@ -1,4 +1,5 @@
 global start
+extern long_mode_start
 
 section .text ; program
 bits 32
@@ -10,6 +11,7 @@ start:
     call enable_paging
 
     lgdt [gdt64.pointer] ; load the gdt
+    jmp gdt64.code:long_mode_start ; far jump
 
     hlt
 
