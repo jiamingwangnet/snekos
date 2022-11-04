@@ -4,13 +4,20 @@ SECTIONS
 {
     . = 1M; /* start 1 megabyte in */
 
-    .boot :
+	.text BLOCK(4K) : ALIGN(4K)
 	{
-		KEEP(*(.multiboot)) /* the multiboot header for grub */
-	}
-
-	.text :
-	{
+        *(.multiboot) /* the multiboot header for grub */
 		*(.text) /* text section */
 	}
+
+    .rodata BLOCK(4K) : ALIGN(4K)
+    {
+        *(.rodata)
+    }
+
+    .bss BLOCK(4K) : ALIGN(4K)
+    {
+        *(COMMON)
+        *(.bss)
+    }
 }
