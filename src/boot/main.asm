@@ -1,15 +1,17 @@
 global start
+global gdt64.data
 extern long_mode_start
 
 section .text ; program
 bits 32
 start:
     ; entry
-    mov esp, stack_top ; setup stack pointer
+    mov esp, stack_top ; setup stack pointer   
 
     call setup_tables
     call enable_paging
 
+    ; grub starts protected mode which means it also loads its own gdt, however, grub's gdt should not be used
     lgdt [gdt64.pointer] ; load the gdt
     jmp gdt64.code:long_mode_start ; far jump
 
