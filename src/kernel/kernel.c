@@ -1,7 +1,11 @@
-#include "headers/types.h"
-#include "headers/multiboot2.h"
-#include "headers/print.h"
-#include "headers/graphics.h"
+#include "include/types.h"
+#include "include/multiboot2.h"
+#include "include/print.h"
+#include "include/graphics.h"
+#include "include/serial.h"
+#include "include/stdlib.h"
+
+extern unsigned long multiboot_info;
 
 void kernel_main()
 {
@@ -13,8 +17,16 @@ void kernel_main()
     //     }
     // }
 
-    for(unsigned int i = 0xA0000; i < 0xAFFFF; i++)
+    
+    if(!(multiboot_info & 7))
     {
-        *(uint32_t*)i = 255;
+        for(unsigned int i = 0xA0000; i < 0xAFFFF; i++)
+        {
+            *(uint32_t*)i = 255;
+        }
     }
+    unsigned size = *(unsigned *) (multiboot_info & 0xffffffff);
+    char str[15];
+    itoa(size, str, 10);
+    serial_str(str);
 }
