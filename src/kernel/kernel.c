@@ -18,7 +18,7 @@ void kernel_main()
     // }
 
     
-    if(!(multiboot_info & 7))
+    if(multiboot_info & 7)
     {
         for(unsigned int i = 0xA0000; i < 0xAFFFF; i++)
         {
@@ -53,5 +53,42 @@ void kernel_main()
         serial_str(" size: ");
         serial_str(tagsize);
         serial_char('\n');
+
+        if(tag->type == MULTIBOOT_TAG_TYPE_FRAMEBUFFER)
+        {
+            serial_char('\n');
+            multiboot_uint32_t color;
+            unsigned i;
+            struct multiboot_tag_framebuffer *tagfb
+              = (struct multiboot_tag_framebuffer *) tag;
+            void *fb = (void *) (unsigned long) tagfb->common.framebuffer_addr;
+            
+            serial_str("framebuffer address: 0x");
+            char fbaddr[15];
+            itoa(tagfb->common.framebuffer_addr, fbaddr, 16);
+            serial_str(fbaddr);
+            serial_char('\n');
+            
+            serial_str("width: ");
+            char fbwidth[15];
+            itoa(tagfb->common.framebuffer_width, fbwidth, 10);
+            serial_str(fbwidth);
+            serial_char('\n');
+
+            serial_str("height: ");
+            char fbheight[15];
+            itoa(tagfb->common.framebuffer_height, fbheight, 10);
+            serial_str(fbheight);
+            serial_char('\n');
+
+            serial_str("bpp: ");
+            char fbbpp[15];
+            itoa(tagfb->common.framebuffer_bpp, fbbpp, 10);
+            serial_str(fbbpp);
+            serial_char('\n');
+
+            serial_char('\n');
+            
+        }
     }
 }
