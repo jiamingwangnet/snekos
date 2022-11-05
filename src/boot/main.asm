@@ -1,10 +1,17 @@
 global start
 global gdt64.data
+global multiboot_info
 extern long_mode_start
+global serial_com1
 
 section .text ; program
 bits 32
 start:
+    cmp eax, 0x36d76289
+    jne .err
+
+    mov dword [multiboot_info], ebx
+
     ; entry
     mov esp, stack_top ; setup stack pointer   
 
@@ -14,7 +21,7 @@ start:
     ; grub starts protected mode which means it also loads its own gdt, however, grub's gdt should not be used
     lgdt [gdt64.pointer] ; load the gdt
     jmp gdt64.code:long_mode_start ; far jump
-
+.err:
     hlt
 
 setup_tables:
@@ -60,6 +67,12 @@ enable_paging:
     or eax, 1 << 31
     or eax, 1 << 16
     mov cr0, eax
+    
+    ret
+
+serial_com1:
+    mov dx, 0x3F8
+    out dx, eax
 
     ret
 
@@ -75,6 +88,8 @@ page_table_l2:
 stack_bottom:
     resb 4096 ; reserve 4KiB of space
 stack_top:
+
+multiboot_info resb 4
 
 section .rodata ; readonly data
 ; global discriptor table
