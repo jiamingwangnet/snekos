@@ -25,8 +25,33 @@ void kernel_main()
             *(uint32_t*)i = 255;
         }
     }
-    unsigned size = *(unsigned *) (multiboot_info & 0xffffffff);
+
+    unsigned long addr = multiboot_info & 0xffffffff;
+
+    unsigned size = *(unsigned *) addr;
+    struct multiboot_tag *tag;
+
     char str[15];
     itoa(size, str, 10);
     serial_str(str);
+    serial_char('\n');
+    serial_char('\n');
+
+    for (tag = (struct multiboot_tag *) (addr + 8); // loop though every tag idk how it works
+       tag->type != MULTIBOOT_TAG_TYPE_END;
+       tag = (struct multiboot_tag *) ((multiboot_uint8_t *) tag 
+                                       + ((tag->size + 7) & ~7)))
+    {
+        char tagtype[15];
+        itoa(tag->type, tagtype, 10);
+
+        char tagsize[15];
+        itoa(tag->size, tagsize, 10);
+
+        serial_str("tag: ");
+        serial_str(tagtype);
+        serial_str(" size: ");
+        serial_str(tagsize);
+        serial_char('\n');
+    }
 }
