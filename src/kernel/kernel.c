@@ -27,6 +27,12 @@ void kernel_main()
 
     unsigned long addr = multiboot_info & 0xffffffff;
 
+    char adr[15];
+    itoa(addr, adr, 16);
+    serial_str("location: 0x");
+    serial_str(adr);
+    serial_char('\n');
+
     unsigned size = *(unsigned *)addr;
     struct multiboot_tag *tag;
 
@@ -58,7 +64,7 @@ void kernel_main()
             multiboot_uint32_t color;
             unsigned i;
             struct multiboot_tag_framebuffer *tagfb = (struct multiboot_tag_framebuffer *)tag;
-            volatile void *fb = (void *)(unsigned long long)tagfb->common.framebuffer_addr;
+            volatile void *fb = (void *)(unsigned long long)tagfb->common.framebuffer_addr; // cannot dereference because it is not mapped
 
 
 #pragma region 
@@ -109,8 +115,8 @@ void kernel_main()
             color = ((1 << tagfb->framebuffer_blue_mask_size) - 1)
                     << tagfb->framebuffer_blue_field_position;
 
-            // uint32_t* pixel = fb + 0;
-            uint64_t value = fb;
+            multiboot_uint32_t *pixel = fb + tagfb->common.framebuffer_pitch * 0 + 4 * 0;
+            uint64_t value = 0;
 
             serial_str("fb pixel[0]: 0x");
 
