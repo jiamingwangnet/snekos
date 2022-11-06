@@ -4,8 +4,8 @@
     #define __SIZE_TYPE__ unsigned long long
 #endif
 
-typedef unsigned char uint8_t;
-typedef unsigned int uint32_t;
+#include <stdint.h>
+
 typedef __SIZE_TYPE__ size_t;
 
 typedef struct
