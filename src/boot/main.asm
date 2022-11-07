@@ -15,6 +15,13 @@ start:
     ; entry
     mov esp, stack_top ; setup stack pointer   
 
+    mov ecx, 0
+; .fill
+;     mov byte [0xfd000000 + ecx], 0xff ; works before paging because it is accessing it as a physical address
+;     inc ecx
+;     cmp ecx, 1280 * 800 * 4
+;     jne .fill
+
     call setup_tables
     call enable_paging
 
@@ -36,7 +43,7 @@ setup_tables:
     ; loop
     mov ecx, 0 ; ecx is the counter
 .map_l2_table: ; maps the l2 table to point to valid pages
-    mov eax, 0x200000  ; 2 MiB, eax is used for multiplication
+    mov eax, 0x200000 ; 2 MiB, eax is used for multiplication
     mul ecx ; muliplies ecx by eax and stores the result in eax
     or eax, 0b10000011 ; the first bit indicates that this page is very large (huge page bit)
     mov [page_table_l2 + ecx * 8], eax ; write the page into the table
@@ -45,6 +52,7 @@ setup_tables:
     cmp ecx, 512 ; loop 512 times
     jne .map_l2_table
 
+    ; map the kernel to 3gb
     ret
 
 enable_paging:
@@ -85,6 +93,7 @@ page_table_l3:
     resb 4096
 page_table_l2:
     resb 4096
+
 stack_bottom:
     resb 4096 ; reserve 4KiB of space
 stack_top:
@@ -110,3 +119,4 @@ gdt64:
 .pointer:
     dw .pointer - gdt64 - 1 ; length (2 bytes)
     dq gdt64 ; the address of the table
+kernel_end:

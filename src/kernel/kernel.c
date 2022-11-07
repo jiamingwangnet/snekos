@@ -24,6 +24,10 @@ void kernel_main()
             *(uint32_t *)i = 255;
         }
     }
+    // for (unsigned int i = 0xA0000; i < 0xAFFFF; i++)
+    //     {
+    //         *(uint32_t *)i = 255;
+    //     }
 
     unsigned long addr = multiboot_info & 0xffffffff;
 
@@ -115,7 +119,7 @@ void kernel_main()
             color = ((1 << tagfb->framebuffer_blue_mask_size) - 1)
                     << tagfb->framebuffer_blue_field_position;
 
-            multiboot_uint32_t *pixel = fb + tagfb->common.framebuffer_pitch * 0 + 4 * 0;
+            volatile multiboot_uint32_t *pixel = fb + tagfb->common.framebuffer_pitch * 0 + 4 * 0;
             uint64_t value = 0;
 
             serial_str("fb pixel[0]: 0x");
