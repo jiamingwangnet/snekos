@@ -4,9 +4,58 @@ global multiboot_info
 extern long_mode_start
 global serial_com1
 
-section .text ; program
+extern _kernel_start
+extern _kernel_end
+
+section multiboot.text
 bits 32
+
+setup_tables:
+    ; map the kernel to 3gb
+
+    mov edi, page_table_1 - 0xC0000000
+    mov esi, 0
+    mov ecx, 1023
+
+one:
+    cmp esi, _kernel_start    
+    jl two
+    cmp esi, _kernel_end - 0xC0000000
+    jge three
+
+    mov edx, esi
+    or edx, 0x003
+    mov edi, edx
+two:
+    add esi, 4096
+    add edi, 4
+    loop 1b
+three:   
+    mov dword [page_table_1 - 0xC0000000 + 1023 * 4], 0x000B8000 | 0x003
+    mov dword [page_directory - 0xC0000000 + 0], page_table_1 - 0xC0000000 + 0x003
+    mov dword [page_directory - 0xC0000000 + 768 * 4], page_table_1 - 0xC0000000 + 0x003
+
+    mov ecx, page_directory - 0xC0000000
+    mov cr3, ecx
+
+    mov ecx, cr0
+    or ecx, 0x80010000
+    mov cr0, ecx
+
+    mov ecx, four
+    jmp [ecx]
+
+    ret
+
 start:
+    call setup_tables
+
+section .text ; program
+four:
+    mov dword [page_directory + 0], 0
+    mov ecx, cr3
+    mov cr3, ecx
+
     cmp eax, 0x36d76289
     jne .err
 
@@ -15,68 +64,19 @@ start:
     ; entry
     mov esp, stack_top ; setup stack pointer   
 
-    mov ecx, 0
+;     mov ecx, 0
 ; .fill
 ;     mov byte [0xfd000000 + ecx], 0xff ; works before paging because it is accessing it as a physical address
 ;     inc ecx
 ;     cmp ecx, 1280 * 800 * 4
 ;     jne .fill
 
-    call setup_tables
-    call enable_paging
-
     ; grub starts protected mode which means it also loads its own gdt, however, grub's gdt should not be used
     lgdt [gdt64.pointer] ; load the gdt
     jmp gdt64.code:long_mode_start ; far jump
 .err:
-    hlt
-
-setup_tables:
-    mov eax, page_table_l3
-    or eax, 0b11 ; present bit and writable bit
-    mov dword [page_table_l4 + 0], eax ; make page_table_l4 point to page_table_l3
-
-    mov eax, page_table_l2
-    or eax, 0b11
-    mov dword [page_table_l3 + 0], eax
-
-    ; loop
-    mov ecx, 0 ; ecx is the counter
-.map_l2_table: ; maps the l2 table to point to valid pages
-    mov eax, 0x200000 ; 2 MiB, eax is used for multiplication
-    mul ecx ; muliplies ecx by eax and stores the result in eax
-    or eax, 0b10000011 ; the first bit indicates that this page is very large (huge page bit)
-    mov [page_table_l2 + ecx * 8], eax ; write the page into the table
-
-    inc ecx
-    cmp ecx, 512 ; loop 512 times
-    jne .map_l2_table
-
-    ; map the kernel to 3gb
-    ret
-
-enable_paging:
-    mov eax, page_table_l4 ; cannot directly move to cr3
-    mov cr3, eax ; move the page table to cr3 (control register)
-
-    ; enable PAE
-    mov eax, cr4 ; modify the contents of cr4
-    or eax, 1 << 5 ; set the 5th bit
-    mov cr4, eax
-
-    ; set the long mode bit
-    mov ecx, 0xC0000080
-    rdmsr ; accesses machine specific registers
-    or eax, 1 << 8
-    wrmsr
-
-    ; enable paging
-    mov eax, cr0
-    or eax, 1 << 31
-    or eax, 1 << 16
-    mov cr0, eax
-    
-    ret
+oneb: hlt
+      jmp oneb
 
 serial_com1:
     mov dx, 0x3F8
@@ -87,11 +87,9 @@ serial_com1:
 section .bss ; uninitialised data
 ; stack
 align 4096 ; 4KiB
-page_table_l4:
+page_directory:
     resb 4096
-page_table_l3:
-    resb 4096
-page_table_l2:
+page_table_1:
     resb 4096
 
 stack_bottom:
