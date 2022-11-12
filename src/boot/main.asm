@@ -3,6 +3,8 @@ global gdt64.data
 global multiboot_info
 extern long_mode_start
 global serial_com1
+global page_table_l2
+global testing
 
 section .text ; program
 bits 32
@@ -12,11 +14,18 @@ start:
 
     mov dword [multiboot_info], ebx
 
+;     mov ecx, 0
+; .fill_white:
+;     mov byte [0xfd000000 + ecx], 0xff ; make this work
+;     inc ecx
+;     cmp ecx, 1280 * 800 * 4 - 1280 * 4 * 595
+;     jne .fill_white
+
     ; entry
     mov esp, stack_top ; setup stack pointer   
 
     call setup_tables
-    call enable_paging
+    call enable_paging 
 
     ; grub starts protected mode which means it also loads its own gdt, however, grub's gdt should not be used
     lgdt [gdt64.pointer] ; load the gdt
@@ -86,10 +95,11 @@ page_table_l3:
 page_table_l2:
     resb 4096
 stack_bottom:
-    resb 4096 ; reserve 4KiB of space
+    resb 16384 ; reserve 4KiB of space
 stack_top:
 
 multiboot_info resb 4
+testing equ $
 
 section .rodata ; readonly data
 ; global discriptor table

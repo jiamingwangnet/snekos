@@ -6,6 +6,7 @@
 #include "include/stdlib.h"
 
 extern unsigned long multiboot_info;
+extern unsigned long page_table_l2;
 
 void kernel_main()
 {
@@ -16,6 +17,7 @@ void kernel_main()
     //         put_pixel(x, y, (Color){255, 255, 255});
     //     }
     // }
+    serial_str("\n\n\n\n\n\n\n\n\n\n\n");
 
     if (multiboot_info & 7)
     {
@@ -26,6 +28,15 @@ void kernel_main()
     }
 
     unsigned long addr = multiboot_info & 0xffffffff;
+
+    char pagel2[15];
+    itoa((unsigned long)page_table_l2, pagel2, 16);
+    serial_str("page l2: 0x");
+    serial_str(pagel2);
+    serial_char('\n');
+
+    // unsigned long mapped = 0xfd000000 | 0b10000011;
+    // *(unsigned long *)(page_table_l2 + 8) = mapped;
 
     char adr[15];
     itoa(addr, adr, 16);
@@ -66,6 +77,12 @@ void kernel_main()
             struct multiboot_tag_framebuffer *tagfb = (struct multiboot_tag_framebuffer *)tag;
             volatile void *fb = (void *)(unsigned long long)tagfb->common.framebuffer_addr; // cannot dereference because it is not mapped
 
+            // map framebuffer
+            // *(unsigned long long*)page_table_l2 = (unsigned long long)tagfb->common.framebuffer_addr | 0b10000011;
+            // __asm__(
+            //     "mov eax, page_table_l2\n"
+            //     "invlpg [eax]"
+            // );
 
 #pragma region 
             serial_str("framebuffer address: 0x");
@@ -117,6 +134,7 @@ void kernel_main()
 
             multiboot_uint32_t *pixel = fb + tagfb->common.framebuffer_pitch * 0 + 4 * 0;
             uint64_t value = 0;
+            // *(uint8_t*)0xe3
 
             serial_str("fb pixel[0]: 0x");
 

@@ -6,7 +6,7 @@ C_OBJ_FILES := $(patsubst src/kernel/%.c, build/kernel/%.o, $(C_SOURCE_FILES))
 
 $(C_OBJ_FILES): build/kernel/%.o : src/kernel/%.c
 	mkdir -p $(dir $@) && \
-	gcc -m64 -ffreestanding -c $(patsubst build/kernel/%.o, src/kernel/%.c, $@) -o $@
+	gcc -masm=intel -m64 -ffreestanding -c $(patsubst build/kernel/%.o, src/kernel/%.c, $@) -o $@
 
 $(ASM_OBJ_FILES): build/boot/%.o : src/boot/%.asm
 	mkdir -p $(dir $@) && \

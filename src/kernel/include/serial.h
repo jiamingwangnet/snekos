@@ -1,3 +1,5 @@
+#pragma once
+
 extern void serial_com1(void);
 
 void sout();
