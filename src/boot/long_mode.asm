@@ -15,21 +15,16 @@ long_mode_start:
     mov gs, ax
 
     ; mov eax, page_table_l2
-    ; ; add eax, 0x100000
-    mov dword [page_table_l2], 0xfd000000 | 0b10000011 
-    ; ; maps 0xfd000000 to 0x0
-    ; invlpg [eax]
+    mov dword [page_table_l2], 0xfd000000 | 0b10000011 ; maps 0xfd000000 to 0x0
+    ; invlpg [eax] ; this fucks everything up
 
-    ; ; mov eax, [page_table_l2]
-
-    ; ; mov [0x100000], eax
-    mov byte [0], 0xff
-;     mov ecx, 0
-; .fill_white:
-;     mov byte [ecx], 0xff ; make this work
-;     inc ecx
-;     cmp ecx, 1280 * 800 * 4
-;     jne .fill_white
+    ; mov byte [0], 0xff ; works now
+    mov ecx, 0
+.fill_white:
+    mov dword [ecx * 4], 0xffffffff ; make this work
+    inc ecx
+    cmp ecx, 1280 * 100 ; 100 lines
+    jne .fill_white
 
     call kernel_main
 
