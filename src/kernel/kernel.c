@@ -88,15 +88,25 @@ void kernel_main()
     // limit 0x3D1FFFFC due to 2MiB page cap if second half not mapped
     // put_pixel(767, 409, (Color){255, 255, 255}, tagfb);
 
+    const uint32_t height = tagfb->common.framebuffer_height;
+    const uint32_t width = tagfb->common.framebuffer_width;
 
-
-    for(uint32_t y = 0; y < tagfb->common.framebuffer_height; y++)
+    for(uint32_t y = 0; y < height; y++)
     {
-        for(uint32_t x = 0; x < tagfb->common.framebuffer_width; x++)
+        for(uint32_t x = 0; x < width; x++)
         {
             put_pixel(x, y, (Color){255,255,255}, tagfb);
         }
     }
 
+    // draw smile
 
+    // mouth
+    draw_rect(width/2 - 250, height/2 + 110, 500, 50, (Color){0,0,0}, tagfb);
+    draw_rect(width/2 - 250, height/2 + 10, 50, 100, (Color){0,0,0}, tagfb);
+    draw_rect(width/2 + 200, height/2 + 10, 50, 100, (Color){0,0,0}, tagfb);
+
+    // eyes
+    draw_rect(width/2 - 130, 200, 60, 120, (Color){0,0,0}, tagfb);
+    draw_rect(width/2 + 70, 200, 60, 120, (Color){0,0,0}, tagfb);
 }
