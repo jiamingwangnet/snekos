@@ -1,5 +1,5 @@
-#include "print.h"
-#include "types.h"
+#include "../print.h"
+#include "../types.h"
 
 struct Char
 {

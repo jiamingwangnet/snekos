@@ -1,5 +1,5 @@
-#include "graphics.h"
-#include "types.h"
+#include "../graphics.h"
+#include "../types.h"
 
 const static size_t width = 1280;
 const static size_t height = 800;
