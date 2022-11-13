@@ -1,13 +1,9 @@
 #include "../graphics.h"
-#include "../types.h"
 
-const static size_t width = 1280;
-const static size_t height = 800;
-
-void put_pixel(int x, int y, Color color)
+void put_pixel(uint32_t x, uint32_t y, Color color, framebuffer_tag* fbtag)
 {
-    uint8_t* location = (uint8_t*)(0xA0000 + (4 * width * y) + (4 * x));
-    *(location + 0) = color.b;
-    *(location + 1) = color.g;
-    *(location + 2) = color.r;
+    uint8_t* addr = (uint8_t*)(FRAMBUFFER + y * fbtag->common.framebuffer_pitch + x);
+    addr[0] = color.b;
+    addr[1] = color.g;
+    addr[2] = color.r;
 }

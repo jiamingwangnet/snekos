@@ -5,9 +5,10 @@
 #endif
 
 #include <stdint.h>
+#include "multiboot2.h"
 
 typedef __SIZE_TYPE__ size_t;
-
+typedef struct multiboot_tag_framebuffer framebuffer_tag;
 typedef struct
 {
     uint8_t r;

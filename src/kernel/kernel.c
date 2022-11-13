@@ -1,73 +1,15 @@
 #include "include/types.h"
-#include "include/multiboot2.h"
-#include "include/print.h"
-#include "include/graphics.h"
 #include "include/serial.h"
 #include "include/stdlib.h"
-
-extern unsigned long multiboot_info;
-extern unsigned long page_table_l2;
-extern unsigned long framebuffer;
-extern void map_framebuffer(void);
+#include "include/multiboot_init.h"
+#include "include/graphics.h"
 
 void kernel_main()
 {
-    if (multiboot_info & 7)
-    {
-        for (unsigned int i = 0xA0000; i < 0xAFFFF; i+=4)
-        {
-            *(uint32_t *)(i + 2) = 255;
-        }
-    }
+    framebuffer_tag* tagfb = get_framebuffer_tag();
+    init_framebuffer(tagfb);
 
-    unsigned long addr = multiboot_info & 0xffffffff;
-
-    char pagel2[15];
-    itoa((unsigned long)page_table_l2, pagel2, 16);
-    serial_str("page l2: 0x");
-    serial_str(pagel2);
-    serial_char('\n');
-
-    // unsigned long mapped = 0xfd000000 | 0b10000011;
-    // *(unsigned long *)(page_table_l2 + 8) = mapped;
-
-    char adr[15];
-    itoa(addr, adr, 16);
-    serial_str("location: 0x");
-    serial_str(adr);
-    serial_char('\n');
-
-    unsigned size = *(unsigned *)addr;
-    struct multiboot_tag *tag;
-
-    char str[15];
-    itoa(size, str, 10);
-    serial_str(str);
-    serial_char('\n');
-    serial_char('\n');
-
-    for (tag = (struct multiboot_tag *)(addr + 8); // loop though every tag idk how it works
-         tag->type != MULTIBOOT_TAG_TYPE_END;
-         tag = (struct multiboot_tag *)((multiboot_uint8_t *)tag + ((tag->size + 7) & ~7)))
-    {
-        char tagtype[15];
-        itoa(tag->type, tagtype, 10);
-
-        char tagsize[15];
-        itoa(tag->size, tagsize, 10);
-
-        serial_str("tag: ");
-        serial_str(tagtype);
-        serial_str(" size: ");
-        serial_str(tagsize);
-        serial_char('\n');
-
-        if (tag->type == MULTIBOOT_TAG_TYPE_FRAMEBUFFER)
-        {
-            serial_char('\n');
-            struct multiboot_tag_framebuffer *tagfb = (struct multiboot_tag_framebuffer *)tag;
-
-#pragma region
+    #pragma region
             serial_str("framebuffer address: 0x");
             char fbaddr[15];
             itoa((unsigned long)tagfb->common.framebuffer_addr, fbaddr, 16);
@@ -117,28 +59,7 @@ void kernel_main()
             serial_char('\n');
 
             serial_char('\n');
-#pragma endregion
+    #pragma endregion
 
-            unsigned pitch = tagfb->common.framebuffer_pitch;
-            unsigned bpp = tagfb->common.framebuffer_bpp;
-
-            unsigned width = tagfb->common.framebuffer_width;
-            unsigned height = tagfb->common.framebuffer_height;
-
-            // map framebuffer
-            framebuffer = tagfb->common.framebuffer_addr;
-            map_framebuffer(); // framebuffer mapped to 0x00000
-
-            for(unsigned i = 0; i < width * (height / 2) * (bpp / 8); i++)
-                *(uint8_t*)(0x3D000000 + i) = 0x55; // 0x3e8000 0x1f3ffff
-
-            // *(uint32_t*)0x3D000000 = 0xffffffff;
-
-            // overwrites kernel code causing crash
-            // map the kerenel to a higher address might be a solution
-            // *(uint32_t*)(206 * pitch) = 0xffffffff;
-            
-            serial_char('\n');
-        }
-    }
+    put_pixel(0, 0, (Color){255, 255, 255}, tagfb);
 }
