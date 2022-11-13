@@ -4,7 +4,6 @@ global multiboot_info
 extern long_mode_start
 global serial_com1
 global page_table_l2
-global testing
 
 section .text ; program
 bits 32
@@ -99,7 +98,6 @@ stack_bottom:
 stack_top:
 
 multiboot_info resb 4
-testing equ $
 
 section .rodata ; readonly data
 ; global discriptor table

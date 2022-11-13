@@ -7,23 +7,16 @@
 
 extern unsigned long multiboot_info;
 extern unsigned long page_table_l2;
+extern unsigned long framebuffer;
+extern void map_framebuffer(void);
 
 void kernel_main()
 {
-    // for (size_t x = 0; x < 1280; x++)
-    // {
-    //     for (size_t y = 0; y < 50; y++)
-    //     {
-    //         put_pixel(x, y, (Color){255, 255, 255});
-    //     }
-    // }
-    serial_str("\n\n\n\n\n\n\n\n\n\n\n");
-
     if (multiboot_info & 7)
     {
-        for (unsigned int i = 0xA0000; i < 0xAFFFF; i++)
+        for (unsigned int i = 0xA0000; i < 0xAFFFF; i+=4)
         {
-            *(uint32_t *)i = 255;
+            *(uint32_t *)(i + 2) = 255;
         }
     }
 
@@ -72,19 +65,9 @@ void kernel_main()
         if (tag->type == MULTIBOOT_TAG_TYPE_FRAMEBUFFER)
         {
             serial_char('\n');
-            multiboot_uint32_t color;
-            unsigned i;
             struct multiboot_tag_framebuffer *tagfb = (struct multiboot_tag_framebuffer *)tag;
-            volatile void *fb = (void *)(unsigned long long)tagfb->common.framebuffer_addr; // cannot dereference because it is not mapped
 
-            // map framebuffer
-            // *(unsigned long long*)page_table_l2 = (unsigned long long)tagfb->common.framebuffer_addr | 0b10000011;
-            // __asm__(
-            //     "mov eax, page_table_l2\n"
-            //     "invlpg [eax]"
-            // );
-
-#pragma region 
+#pragma region
             serial_str("framebuffer address: 0x");
             char fbaddr[15];
             itoa((unsigned long)tagfb->common.framebuffer_addr, fbaddr, 16);
@@ -109,6 +92,12 @@ void kernel_main()
             serial_str(fbbpp);
             serial_char('\n');
 
+            serial_str("pitch: ");
+            char fbptch[15];
+            itoa(tagfb->common.framebuffer_pitch, fbptch, 10);
+            serial_str(fbptch);
+            serial_char('\n');
+
             serial_str("fb type: ");
             char fbtype[15];
             itoa(tagfb->common.framebuffer_type, fbtype, 10);
@@ -129,33 +118,22 @@ void kernel_main()
 
             serial_char('\n');
 #pragma endregion
-            color = ((1 << tagfb->framebuffer_blue_mask_size) - 1)
-                    << tagfb->framebuffer_blue_field_position;
 
-            multiboot_uint32_t *pixel = fb + tagfb->common.framebuffer_pitch * 0 + 4 * 0;
-            uint64_t value = 0;
-            // *(uint8_t*)0xe3
+            unsigned pitch = tagfb->common.framebuffer_pitch;
+            unsigned bpp = tagfb->common.framebuffer_bpp;
 
-            serial_str("fb pixel[0]: 0x");
+            // map framebuffer
+            framebuffer = tagfb->common.framebuffer_addr;
+            map_framebuffer(); // framebuffer mapped to 0x00000
 
-            char fbpixel[15];
-            itoa(value, fbpixel, 16);
-            char fbpixeldec[15];
-            itoa(value, fbpixeldec, 10);
+            for(unsigned i = 0; i < 1280 * 205; i++) // cant go over 205 lines idk
+                *(uint32_t*)(i * (bpp / 8)) = 0xffffffff;
 
-            serial_str(fbpixel);
-            serial_str(" (");
-            serial_str(fbpixeldec);
-            serial_str(")");
+            // overwrites kernel code causing crash
+            // map the kerenel to a higher address might be a solution
+            // *(uint32_t*)(206 * pitch) = 0xffffffff;
             
             serial_char('\n');
-            serial_char('\n');
-            
-            // for (i = 0; i < tagfb->common.framebuffer_width && i < tagfb->common.framebuffer_height; i++)
-            // {
-            //     multiboot_uint32_t *pixel = fb + tagfb->common.framebuffer_pitch * i + 4 * i;
-            //     *pixel = color;
-            // }
         }
     }
 }

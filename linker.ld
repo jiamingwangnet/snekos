@@ -4,12 +4,12 @@ SECTIONS
 {
     . = 1M; /* start 1 megabyte in */
 
-    .multiboot :
+    .multiboot ALIGN(4K) :
     {
         KEEP(*(.multiboot)) /* the multiboot header for grub */
     }
 
-	.text :
+	.text ALIGN(4K) :
 	{
 		*(.text) /* text section */
 	}
