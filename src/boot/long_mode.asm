@@ -32,6 +32,10 @@ map_framebuffer:
     ;          page_table_l2 + 16 maps to 0x400000
     ;          page_table_l2 + 8 * 488 = 0x3D000000
     mov dword [page_table_l2 + 8 * 488], eax 
+
+    ; map second half of framebuffer for full image
+    add eax, 0x200000
+    mov dword [page_table_l2 + 8 * 489], eax 
     ret
 
 section .bss

@@ -46,6 +46,30 @@ void kernel_main()
             serial_str(fbtype);
             serial_char('\n');
 
+            serial_str("red mask size: ");
+            char rmsize[15];
+            itoa(tagfb->framebuffer_red_mask_size, rmsize, 10);
+            serial_str(rmsize);
+            serial_char('\n');
+
+            serial_str("red field pos: ");
+            char rfp[15];
+            itoa(tagfb->framebuffer_red_field_position, rfp, 10);
+            serial_str(rfp);
+            serial_char('\n');
+
+            serial_str("green mask size: ");
+            char gmsize[15];
+            itoa(tagfb->framebuffer_green_mask_size, gmsize, 10);
+            serial_str(gmsize);
+            serial_char('\n');
+
+            serial_str("green field pos: ");
+            char gfp[15];
+            itoa(tagfb->framebuffer_green_field_position, gfp, 10);
+            serial_str(gfp);
+            serial_char('\n');
+
             serial_str("blue mask size: ");
             char bmsize[15];
             itoa(tagfb->framebuffer_blue_mask_size, bmsize, 10);
@@ -61,5 +85,18 @@ void kernel_main()
             serial_char('\n');
     #pragma endregion
 
-    put_pixel(0, 0, (Color){255, 255, 255}, tagfb);
+    // limit 0x3D1FFFFC due to 2MiB page cap if second half not mapped
+    // put_pixel(767, 409, (Color){255, 255, 255}, tagfb);
+
+
+
+    for(uint32_t y = 0; y < tagfb->common.framebuffer_height; y++)
+    {
+        for(uint32_t x = 0; x < tagfb->common.framebuffer_width; x++)
+        {
+            put_pixel(x, y, (Color){255,255,255}, tagfb);
+        }
+    }
+
+
 }
