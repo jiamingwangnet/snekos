@@ -122,12 +122,17 @@ void kernel_main()
             unsigned pitch = tagfb->common.framebuffer_pitch;
             unsigned bpp = tagfb->common.framebuffer_bpp;
 
+            unsigned width = tagfb->common.framebuffer_width;
+            unsigned height = tagfb->common.framebuffer_height;
+
             // map framebuffer
             framebuffer = tagfb->common.framebuffer_addr;
             map_framebuffer(); // framebuffer mapped to 0x00000
 
-            for(unsigned i = 0; i < 1280 * 205; i++) // cant go over 205 lines idk
-                *(uint32_t*)(i * (bpp / 8)) = 0xffffffff;
+            for(unsigned i = 0; i < width * (height / 2) * (bpp / 8); i++)
+                *(uint8_t*)(0x3D000000 + i) = 0x55; // 0x3e8000 0x1f3ffff
+
+            // *(uint32_t*)0x3D000000 = 0xffffffff;
 
             // overwrites kernel code causing crash
             // map the kerenel to a higher address might be a solution

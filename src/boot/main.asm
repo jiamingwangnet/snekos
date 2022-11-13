@@ -17,8 +17,10 @@ start:
 ; .fill_white:
 ;     mov byte [0xfd000000 + ecx], 0xff ; make this work
 ;     inc ecx
-;     cmp ecx, 1280 * 800 * 4 - 1280 * 4 * 595
+;     cmp ecx, 1280 * 800 * 4
 ;     jne .fill_white
+
+    ; mov dword [0xfd000000], 0xffffffff
 
     ; entry
     mov esp, stack_top ; setup stack pointer   
