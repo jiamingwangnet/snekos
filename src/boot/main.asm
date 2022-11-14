@@ -120,3 +120,9 @@ gdt64:
 .pointer:
     dw .pointer - gdt64 - 1 ; length (2 bytes)
     dq gdt64 ; the address of the table
+
+%macro
+
+%endmacro
+
+idt64:
