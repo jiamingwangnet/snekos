@@ -4,6 +4,7 @@ extern gdt64.data
 extern page_table_l2
 global framebuffer
 global map_framebuffer
+global screen_size
 
 section .text
 bits 64
@@ -25,18 +26,38 @@ long_mode_start:
     hlt
 
 map_framebuffer:
-    mov eax, [framebuffer]
-    or eax, 0b10000011
+    mov ebx, [framebuffer]
+    or ebx, 0b10000011
     ; adding 8 moves add 2MiB to the mapped address
     ; example: page_table_l2 + 8 maps to 0x200000
     ;          page_table_l2 + 16 maps to 0x400000
     ;          page_table_l2 + 8 * 488 = 0x3D000000
-    mov dword [page_table_l2 + 8 * 488], eax 
+    mov dword [page_table_l2 + 8 * 488], ebx 
 
-    ; map second half of framebuffer for full image
-    add eax, 0x200000
-    mov dword [page_table_l2 + 8 * 489], eax 
+    ; map more memory if needed
+    cmp dword [screen_size], 0x200000
+    jge .map_extra
+    ret
+
+.map_extra:
+    mov ecx, 1
+.loop:
+    add ebx, 0x200000
+    mov dword [page_table_l2 + 8 * (488 + ecx)], ebx 
+
+    mov edx, ecx
+    mov eax, 0x200000
+    mul edx
+    mov edx, eax
+    add edx, 0x200000
+
+    inc ecx
+    cmp edx, [screen_size]
+    jl .loop
+
     ret
 
 section .bss
 framebuffer resb 4
+; width * height * bpp
+screen_size resb 4

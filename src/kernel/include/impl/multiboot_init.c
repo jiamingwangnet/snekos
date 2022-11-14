@@ -3,6 +3,7 @@
 extern uint32_t multiboot_info;
 extern uint32_t page_table_l2;
 extern uint32_t framebuffer;
+extern uint32_t screen_size;
 extern void map_framebuffer(void);
 
 uint32_t get_info_addr() 
@@ -34,6 +35,7 @@ void init_framebuffer(framebuffer_tag* fbtag)
     if(fbtag != 0)
     {
         framebuffer = fbtag->common.framebuffer_addr;
+        screen_size = fbtag->common.framebuffer_width * fbtag->common.framebuffer_height * fbtag->common.framebuffer_bpp;
         map_framebuffer();
     }
 }
