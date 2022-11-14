@@ -2,9 +2,16 @@
 
 extern uint32_t multiboot_info;
 extern uint32_t page_table_l2;
-extern uint32_t framebuffer;
-extern uint32_t screen_size;
-extern void map_framebuffer(void);
+
+void map_framebuffer(uint32_t framebuffer, uint32_t screen_size)
+{
+    framebuffer |= 0b10000011;
+    for(uint32_t i = 0; i * 0x200000 < screen_size; i++)
+    {
+        *(uint32_t*)((uint32_t)&page_table_l2 + 8 * (488 + i)) = framebuffer + i * 0x200000;
+    }
+    __asm__("invlpg [0]");
+}
 
 uint32_t get_info_addr() 
 {
@@ -34,8 +41,7 @@ void init_framebuffer(framebuffer_tag* fbtag)
     uint32_t addr = get_info_addr();
     if(fbtag != 0)
     {
-        framebuffer = fbtag->common.framebuffer_addr;
-        screen_size = fbtag->common.framebuffer_width * fbtag->common.framebuffer_height * fbtag->common.framebuffer_bpp;
-        map_framebuffer();
+        map_framebuffer(fbtag->common.framebuffer_addr, 
+            fbtag->common.framebuffer_width * fbtag->common.framebuffer_height * fbtag->common.framebuffer_bpp);
     }
 }
