@@ -2,12 +2,15 @@ global start
 global gdt64.data
 global multiboot_info
 extern long_mode_start
+extern idt64
 global serial_com1
 global page_table_l2
 
 section .text ; program
 bits 32
 start:
+    cli
+
     cmp eax, 0x36d76289
     jne .err
 
@@ -30,6 +33,8 @@ start:
 
     ; grub starts protected mode which means it also loads its own gdt, however, grub's gdt should not be used
     lgdt [gdt64.pointer] ; load the gdt
+    ; lidt [idt64]
+
     jmp gdt64.code:long_mode_start ; far jump
 .err:
     hlt
@@ -120,9 +125,3 @@ gdt64:
 .pointer:
     dw .pointer - gdt64 - 1 ; length (2 bytes)
     dq gdt64 ; the address of the table
-
-%macro
-
-%endmacro
-
-idt64:

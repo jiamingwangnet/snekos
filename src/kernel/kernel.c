@@ -3,11 +3,14 @@
 #include "include/stdlib.h"
 #include "include/multiboot_init.h"
 #include "include/graphics.h"
+#include "include/idt.h"
 
 void kernel_main()
 {
     framebuffer_tag* tagfb = get_framebuffer_tag();
     init_framebuffer(tagfb);
+
+    init_idt();
 
     #pragma region
             serial_str("framebuffer address: 0x");
@@ -88,6 +91,9 @@ void kernel_main()
     // limit 0x3D1FFFFC due to 2MiB page cap if second half not mapped
     // put_pixel(767, 409, (Color){255, 255, 255}, tagfb);
 
+   //*(uint32_t*)0xfd000000 = 0x0;
+
+
     const uint32_t height = tagfb->common.framebuffer_height;
     const uint32_t width = tagfb->common.framebuffer_width;
 
@@ -109,4 +115,15 @@ void kernel_main()
     // eyes
     draw_rect(width/2 - 130, 200, 60, 120, (Color){0,0,0}, tagfb);
     draw_rect(width/2 + 70, 200, 60, 120, (Color){0,0,0}, tagfb);
+
+    // trigger division by 0 exception
+    // __asm__(
+    //     "mov eax, 0\n"
+    //     "div eax"
+    // );
+
+    for(;;)
+    {
+        __asm__("nop");
+    }
 }

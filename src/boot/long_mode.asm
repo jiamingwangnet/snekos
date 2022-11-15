@@ -3,6 +3,9 @@ extern kernel_main
 extern gdt64.data
 extern page_table_l2
 global screen_size
+global load_idt
+extern pointer
+extern serial_com1
 
 section .text
 bits 64
@@ -15,10 +18,11 @@ long_mode_start:
     mov fs, ax
     mov gs, ax
 
-    ; trigger division by 0 exception
-    ; mov eax, 0
-    ; div eax
-
     call kernel_main
 
     hlt
+
+load_idt:
+    mov eax, pointer
+    lidt [eax]
+    ret
