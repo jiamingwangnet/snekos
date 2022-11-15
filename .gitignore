@@ -3,5 +3,6 @@
 /bootloader
 resources.txt
 run.bat
+run_debug.bat
 /.vscode
 /debug
