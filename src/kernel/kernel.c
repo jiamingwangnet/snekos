@@ -11,6 +11,7 @@ void kernel_main()
     init_framebuffer(tagfb);
 
     init_idt();
+    init_pic();
 
     #pragma region
             serial_str("framebuffer address: 0x");

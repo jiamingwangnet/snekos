@@ -30,16 +30,6 @@ void isr_handler()
 
 void init_idt()
 {
-    pointer.size = sizeof(entries) - 1;
-    pointer.base = (uint32_t) &entries;
-
-    serial_str("\n\n");
-    char ent[15];
-    itoa(pointer.base, ent, 16);
-    serial_str("0x");
-    serial_str(ent);
-    serial_str("\n\n");
-
     add_idt_entry(0, (uint32_t)isr0, 0x8, 0x8e);
     add_idt_entry(1, (uint32_t)isr1, 0x8, 0x8e);
     add_idt_entry(2, (uint32_t)isr2, 0x8, 0x8e);
@@ -88,6 +78,17 @@ void init_idt()
     add_idt_entry(45, (uint32_t) irq13, 0x08, 0x8E);
     add_idt_entry(46, (uint32_t) irq14, 0x08, 0x8E);
     add_idt_entry(47, (uint32_t) irq15, 0x08, 0x8E);
+
+    pointer.size = sizeof(entries) - 1;
+    pointer.base = (uint32_t) &entries;
+
+    serial_str("\n\n");
+    char ent[15];
+    itoa(pointer.base, ent, 16);
+    serial_str("0x");
+    serial_str(ent);
+    serial_str("\n\n");
+
 
     load_idt();
 }
