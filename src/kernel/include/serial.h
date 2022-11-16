@@ -1,6 +1,6 @@
 #pragma once
 
-extern void serial_com1(void);
+#include "io.h"
 
 void sout();
 void serial_char(char c);

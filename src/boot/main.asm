@@ -3,14 +3,12 @@ global gdt64.data
 global multiboot_info
 extern long_mode_start
 extern idt64
-global serial_com1
 global page_table_l2
 
 section .text ; program
 bits 32
 start:
     cli
-
     cmp eax, 0x36d76289
     jne .err
 
@@ -85,12 +83,6 @@ enable_paging:
     
     ret
 
-serial_com1:
-    mov dx, 0x3F8
-    out dx, eax
-
-    ret
-
 section .bss ; uninitialised data
 ; stack
 align 4096 ; 4KiB
@@ -101,7 +93,7 @@ page_table_l3:
 page_table_l2:
     resb 4096
 stack_bottom:
-    resb 16384 ; reserve 4KiB of space
+    resb 16384 ; reserve 16KiB of space
 stack_top:
 
 multiboot_info resb 4
