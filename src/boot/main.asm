@@ -9,19 +9,9 @@ section .text ; program
 bits 32
 start:
     cli
-    cmp eax, 0x36d76289
-    jne .err
 
-    mov dword [multiboot_info], ebx
-
-;     mov ecx, 0
-; .fill_white:
-;     mov byte [0xfd000000 + ecx], 0xff ; make this work
-;     inc ecx
-;     cmp ecx, 1280 * 800 * 4
-;     jne .fill_white
-
-    ; mov dword [0xfd000000], 0xffffffff
+    call check_multiboot
+    call save_multiboot_info
 
     ; entry
     mov esp, stack_top ; setup stack pointer   
@@ -34,8 +24,18 @@ start:
     ; lidt [idt64]
 
     jmp gdt64.code:long_mode_start ; far jump
-.err:
+
+err:
     hlt
+
+check_multiboot:
+    cmp eax, 0x36d76289
+    jne err
+    ret
+
+save_multiboot_info:
+    mov dword [multiboot_info], ebx
+    ret
 
 setup_tables:
     mov eax, page_table_l3
@@ -92,6 +92,8 @@ page_table_l3:
     resb 4096
 page_table_l2:
     resb 4096
+    
+align 16
 stack_bottom:
     resb 16384 ; reserve 16KiB of space
 stack_top:
