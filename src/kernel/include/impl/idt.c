@@ -1,6 +1,7 @@
 #include "../idt.h"
 #include "../serial.h"
 #include "../stdlib.h"
+#include "../io.h"
 
 extern void load_idt();
 
@@ -9,14 +10,15 @@ struct IDTPtr pointer;
 
 void add_idt_entry(uint8_t index, uint32_t offset, uint16_t sel, uint8_t attr)
 {
-    struct IDTEntry entry;
-    entry.offset_1 = (uint16_t) (offset & 0xffff);
-    entry.offset_2 = (uint16_t) (offset >> 16 & 0xffff);
+    entries[index].offset_1 = (uint16_t) (offset & 0xffff);
+    entries[index].offset_2 = (uint16_t) (offset >> 16 & 0xffff);
+    entries[index].offset_3 = (uint16_t) (offset >> 32 & 0xffff);
 
-    entry.selector = sel;
-    entry.type_attributes = attr;
+    entries[index].zero = 0;
+    entries[index].ist = 0;
 
-    entries[index] = entry;
+    entries[index].selector = sel;
+    entries[index].type_attributes = attr;
 }
 
 void irq_handler()
@@ -30,6 +32,8 @@ void isr_handler()
 
 void init_idt()
 {
+    init_pic();
+
     add_idt_entry(0, (uint32_t)isr0, 0x8, 0x8e);
     add_idt_entry(1, (uint32_t)isr1, 0x8, 0x8e);
     add_idt_entry(2, (uint32_t)isr2, 0x8, 0x8e);
@@ -91,4 +95,27 @@ void init_idt()
 
 
     load_idt();
+}
+
+void init_pic()
+{
+    // Init ICW1
+    out(0x20, 0x11);
+    out(0xA0, 0x11);
+
+    // Init ICW2
+    out(0x21, 0x20);
+    out(0xA1, 0x70);
+
+    // Init ICW3
+    out(0x21, 0x04);
+    out(0xA1, 0x02);
+
+    // Init ICW4
+    out(0x21, 0x01);
+    out(0xA1, 0x01);
+
+    // mask interrupts
+    out(0x21, 0x0);
+    out(0xA1, 0x0);
 }
