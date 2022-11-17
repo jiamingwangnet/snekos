@@ -8,13 +8,14 @@ global page_table_l2
 section .text ; program
 bits 32
 start:
-    cli
+    ; entry
+    mov esp, stack_top ; setup stack pointer  
+
+    call save_multiboot_info 
 
     call check_multiboot
-    call save_multiboot_info
-
-    ; entry
-    mov esp, stack_top ; setup stack pointer   
+    call check_cpuid
+    call check_long_mode
 
     call setup_tables
     call enable_paging 
@@ -31,6 +32,34 @@ err:
 check_multiboot:
     cmp eax, 0x36d76289
     jne err
+    ret
+
+check_cpuid:
+    pushfd
+    pop eax
+    mov ecx, eax
+    xor eax, 1 << 21
+    push eax
+    popfd
+    pushfd
+    pop eax
+    push ecx
+    popfd
+    cmp eax, ecx
+    je err
+    ret
+
+check_long_mode:
+    mov eax, 0x80000000
+    cpuid
+    cmp eax, 0x80000001
+    jb err
+
+    mov eax, 0x80000001
+    cpuid
+    test edx, 1 << 29
+    jz err
+
     ret
 
 save_multiboot_info:
@@ -92,7 +121,7 @@ page_table_l3:
     resb 4096
 page_table_l2:
     resb 4096
-    
+
 align 16
 stack_bottom:
     resb 16384 ; reserve 16KiB of space
