@@ -4,6 +4,7 @@
 #include "../io.h"
 
 extern void load_idt();
+extern uint16_t gdt64_pointer;
 
 struct IDTEntry entries[256] = {};
 struct IDTPtr pointer;

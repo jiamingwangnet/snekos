@@ -10,8 +10,8 @@ void kernel_main()
     framebuffer_tag* tagfb = get_framebuffer_tag();
     init_framebuffer(tagfb);
 
-    init_idt();
     init_pic();
+    init_idt();
 
     #pragma region
             serial_str("framebuffer address: 0x");

@@ -1,34 +1,28 @@
-extern serial_com1
 extern isr_handler
 extern irq_handler
 
-bits 32
+bits 64
 section .text
 
 %macro ISR_NOERRCODE 1
   global isr%1
   isr%1:
     cli
-    push byte 0
-    push byte %1
-    jmp isr_common_stub
+    hlt
 %endmacro
 
 %macro ISR_ERRCODE 1
   global isr%1
   isr%1:
     cli
-    push byte %1
-    jmp isr_common_stub
+    hlt
 %endmacro
 
 %macro IRQ 2
   global irq%1
   irq%1:
     cli
-    push byte 0
-    push byte %2
-    jmp irq_common_stub
+    hlt
 %endmacro
 
 ISR_NOERRCODE  0
@@ -81,53 +75,4 @@ IRQ 13, 45
 IRQ 14, 46
 IRQ 15, 47
 
-isr_common_stub:
-   pusha ; push edi, esi, ebp, esp, ebx, edx, ecx, eax
-
-   ; push mxcsr
-   sub esp, 4
-   stmxcsr [esp]
-
-   ; push cr2
-   mov eax, cr2
-   push eax
-
-   call isr_handler
-
-   ; discard cr2
-   add esp, 4
-
-   ; restore mxcsr
-   ldmxcsr [esp]
-   add esp, 4
-
-   popa       ; pop edi, esi, ebp, esp, ebx, edx, ecx, eax
-   add esp, 8 ; discard error code and ISR number
-   sti        ; re-enable interrupts
-   iret       ; restore cs, eip, eflags, ss, esp
-
-irq_common_stub:
-   pusha ; push edi, esi, ebp, esp, ebx, edx, ecx, eax
-
-   ; push mxcsr
-   sub     esp,    4
-   stmxcsr [esp]
-
-   ; push cr2
-   mov eax, cr2
-   push eax
-
-   call irq_handler
-
-   ; discard cr2
-   add esp, 4
-
-   ; restore mxcsr
-   ldmxcsr [esp]
-   add     esp,    4
-
-   popa           ; pop edi, esi, ebp, esp, ebx, edx, ecx, eax
-   add esp, 8     ; discard error code and IRQ number
-   sti            ; re-enable interrupts
-   iret           ; restore cs, eip, eflags, ss, esp
 

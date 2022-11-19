@@ -4,6 +4,7 @@ global multiboot_info
 extern long_mode_start
 extern idt64
 global page_table_l2
+global gdt64_pointer
 
 section .text ; program
 bits 32
@@ -148,3 +149,5 @@ gdt64:
 .pointer:
     dw .pointer - gdt64 - 1 ; length (2 bytes)
     dq gdt64 ; the address of the table
+
+gdt_pointer equ gdt64.pointer
