@@ -8,6 +8,7 @@ section .text
   global isr%1
   isr%1:
     cli
+    call isr_handler
     hlt
 %endmacro
 
@@ -15,6 +16,7 @@ section .text
   global isr%1
   isr%1:
     cli
+    call isr_handler
     hlt
 %endmacro
 
@@ -74,5 +76,4 @@ IRQ 12, 44
 IRQ 13, 45
 IRQ 14, 46
 IRQ 15, 47
-
 

@@ -7,9 +7,9 @@
 
 void kernel_main()
 {
-    framebuffer_tag* tagfb = get_framebuffer_tag();
-    init_framebuffer(tagfb);
+    init_framebuffer();
 
+    init_serial();
     init_pic();
     init_idt();
 
@@ -94,13 +94,9 @@ void kernel_main()
 
    //*(uint32_t*)0xfd000000 = 0x0;
 
-
-    const uint32_t height = tagfb->common.framebuffer_height;
-    const uint32_t width = tagfb->common.framebuffer_width;
-
-    for(uint32_t y = 0; y < height; y++)
+    for(uint32_t y = 0; y < SCRN_HEIGHT; y++)
     {
-        for(uint32_t x = 0; x < width; x++)
+        for(uint32_t x = 0; x < SCRN_WIDTH; x++)
         {
             put_pixel(x, y, (Color){255,255,255}, tagfb);
         }
@@ -109,19 +105,20 @@ void kernel_main()
     // draw smile
 
     // mouth
-    draw_rect(width/2 - 250, height/2 + 110, 500, 50, (Color){0,0,0}, tagfb);
-    draw_rect(width/2 - 250, height/2 + 10, 50, 100, (Color){0,0,0}, tagfb);
-    draw_rect(width/2 + 200, height/2 + 10, 50, 100, (Color){0,0,0}, tagfb);
+    draw_rect(SCRN_WIDTH/2 - 250, SCRN_HEIGHT/2 + 110, 500, 50, (Color){0,0,0}, tagfb);
+    draw_rect(SCRN_WIDTH/2 - 250, SCRN_HEIGHT/2 + 10, 50, 100, (Color){0,0,0}, tagfb);
+    draw_rect(SCRN_WIDTH/2 + 200, SCRN_HEIGHT/2 + 10, 50, 100, (Color){0,0,0}, tagfb);
 
     // eyes
-    draw_rect(width/2 - 130, 200, 60, 120, (Color){0,0,0}, tagfb);
-    draw_rect(width/2 + 70, 200, 60, 120, (Color){0,0,0}, tagfb);
+    draw_rect(SCRN_WIDTH/2 - 130, 200, 60, 120, (Color){0,0,0}, tagfb);
+    draw_rect(SCRN_WIDTH/2 + 70, 200, 60, 120, (Color){0,0,0}, tagfb);
 
     // trigger division by 0 exception
-    // __asm__(
-    //     "mov eax, 0\n"
-    //     "div eax"
-    // );
+    __asm__(
+        "zinterrupt:"
+        "mov eax, 0\n"
+        "div eax"
+    );
 
     for(;;)
     {
