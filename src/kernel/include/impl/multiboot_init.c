@@ -36,12 +36,17 @@ framebuffer_tag* get_framebuffer_tag()
     return 0;
 }
 
-void init_framebuffer(framebuffer_tag* fbtag)
+void init_framebuffer()
 {
+    tagfb = get_framebuffer_tag();
     uint32_t addr = get_info_addr();
-    if(fbtag != 0)
+
+    if(tagfb != 0)
     {
-        map_framebuffer(fbtag->common.framebuffer_addr, 
-            fbtag->common.framebuffer_width * fbtag->common.framebuffer_height * fbtag->common.framebuffer_bpp);
+        SCRN_HEIGHT = tagfb->common.framebuffer_height;
+        SCRN_WIDTH = tagfb->common.framebuffer_width;
+
+        map_framebuffer(tagfb->common.framebuffer_addr, 
+            tagfb->common.framebuffer_width * tagfb->common.framebuffer_height * tagfb->common.framebuffer_bpp);
     }
 }
