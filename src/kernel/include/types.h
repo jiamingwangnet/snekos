@@ -5,6 +5,7 @@
 #endif
 
 #include <stdint.h>
+#include <stdbool.h>
 #include "multiboot2.h"
 
 typedef __SIZE_TYPE__ size_t;
