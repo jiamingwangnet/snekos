@@ -108,8 +108,21 @@ void kernel_main()
     draw_rect(SCRN_WIDTH/2 - 130, 200, 60, 120, (Color){0,0,0}, tagfb);
     draw_rect(SCRN_WIDTH/2 + 70, 200, 60, 120, (Color){0,0,0}, tagfb);
     
-    for(;;)
+    bool right = true;
+    for(int x = 0;;)
     {
-        __asm__("nop");
+        // clear path
+        draw_rect(0,0,SCRN_WIDTH, 100, (Color){255,255,255}, tagfb);
+
+        draw_rect(x, 0, 100, 100, (Color){122, 199, 40}, tagfb);
+        if(right)
+            x++;
+        else
+            x--;
+
+        if(x + 100 >= SCRN_WIDTH)
+            right = false;
+        else if(x <= 0)
+            right = true;
     }
 }
