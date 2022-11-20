@@ -114,11 +114,11 @@ void kernel_main()
     draw_rect(SCRN_WIDTH/2 + 70, 200, 60, 120, (Color){0,0,0}, tagfb);
 
     // trigger division by 0 exception
-    __asm__(
-        "zinterrupt:"
-        "mov eax, 0\n"
-        "div eax"
-    );
+    // __asm__(
+    //     "zinterrupt:"
+    //     "mov eax, 0\n"
+    //     "div eax"
+    // );
 
     for(;;)
     {
