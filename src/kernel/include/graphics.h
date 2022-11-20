@@ -1,7 +1,7 @@
 #pragma once
 #include "types.h"
 
-#define FRAMBUFFER 0x3D000000
+#define FRAMEBUFFER 0x3D000000
 
 framebuffer_tag* tagfb;
 uint32_t SCRN_HEIGHT;
