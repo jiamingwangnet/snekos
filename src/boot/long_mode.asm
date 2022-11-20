@@ -1,12 +1,9 @@
 global long_mode_start
+global load_idt
+
 extern kernel_main
 extern gdt64.data
-extern page_table_l2
-global screen_size
-global load_idt
 extern pointer
-extern serial_com1
-global init_pic
 
 section .text
 bits 64

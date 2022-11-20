@@ -89,11 +89,6 @@ void kernel_main()
             serial_char('\n');
     #pragma endregion
 
-    // limit 0x3D1FFFFC due to 2MiB page cap if second half not mapped
-    // put_pixel(767, 409, (Color){255, 255, 255}, tagfb);
-
-   //*(uint32_t*)0xfd000000 = 0x0;
-
     for(uint32_t y = 0; y < SCRN_HEIGHT; y++)
     {
         for(uint32_t x = 0; x < SCRN_WIDTH; x++)
@@ -112,13 +107,6 @@ void kernel_main()
     // eyes
     draw_rect(SCRN_WIDTH/2 - 130, 200, 60, 120, (Color){0,0,0}, tagfb);
     draw_rect(SCRN_WIDTH/2 + 70, 200, 60, 120, (Color){0,0,0}, tagfb);
-
-    // trigger division by 0 exception
-    // __asm__(
-    //     "zinterrupt:"
-    //     "mov eax, 0\n"
-    //     "div eax"
-    // );
 
     for(;;)
     {

@@ -5,7 +5,6 @@
 #include "../graphics.h"
 
 extern void load_idt();
-extern uint16_t gdt64_pointer;
 
 struct IDTEntry entries[256] = {};
 struct IDTPtr pointer;
@@ -31,7 +30,6 @@ void irq_handler()
 void isr_handler()
 {
     serial_str("\n\nISR HANDLER\n");
-
     draw_rect(SCRN_WIDTH/2 - 250,SCRN_HEIGHT/2 - 250,500,500,(Color){255,0,0}, tagfb);
 }
 
@@ -90,14 +88,6 @@ void init_idt()
 
     pointer.size = sizeof(entries) - 1;
     pointer.base = (uint32_t) &entries;
-
-    serial_str("\n\n");
-    char ent[15];
-    itoa(pointer.base, ent, 16);
-    serial_str("0x");
-    serial_str(ent);
-    serial_str("\n\n");
-
 
     load_idt();
 }

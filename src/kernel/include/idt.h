@@ -64,8 +64,6 @@ struct IDTEntry { // 64bit
     uint32_t zero;            // reserved
 } __attribute__((packed));
 
-// static_assert(sizeof(IDTEntry) == 8, "idt_entry incorrect size");
-
 struct IDTPtr
 {
     uint16_t size;
