@@ -3,7 +3,6 @@ global load_idt
 
 extern kernel_main
 extern gdt64.data
-extern pointer
 
 section .text
 bits 64
@@ -21,6 +20,5 @@ long_mode_start:
     hlt
 
 load_idt:
-    mov eax, pointer
-    lidt [eax]
+    lidt [edi] ; the first param gets passed into edi
     ret

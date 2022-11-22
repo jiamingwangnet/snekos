@@ -4,7 +4,7 @@
 #include "../io.h"
 #include "../graphics.h"
 
-extern void load_idt();
+extern void load_idt(struct IDTPtr* pointer);
 
 struct IDTEntry entries[256] = {};
 struct IDTPtr pointer;
@@ -89,7 +89,7 @@ void init_idt()
     pointer.size = sizeof(entries) - 1;
     pointer.base = (uint32_t) &entries;
 
-    load_idt();
+    load_idt(&pointer);
 }
 
 void init_pic()
