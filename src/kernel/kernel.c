@@ -13,7 +13,7 @@ void kernel_main()
     init_pic();
     init_idt();
 
-    #pragma region
+    #ifdef DEBUG_LOG
             serial_str("framebuffer address: 0x");
             char fbaddr[15];
             itoa((unsigned long)tagfb->common.framebuffer_addr, fbaddr, 16);
@@ -87,7 +87,7 @@ void kernel_main()
             serial_char('\n');
 
             serial_char('\n');
-    #pragma endregion
+    #endif
 
     for(uint32_t y = 0; y < SCRN_HEIGHT; y++)
     {
@@ -111,6 +111,12 @@ void kernel_main()
     bool right = true;
     for(int x = 0;;)
     {
+        char pressed = in(0x60);
+        if(pressed == 0x10)
+        {
+            serial_char('q');
+        }
+
         // clear path
         draw_rect(0,0,SCRN_WIDTH, 100, (Color){255,255,255}, tagfb);
 
