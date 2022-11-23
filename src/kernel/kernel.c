@@ -111,12 +111,6 @@ void kernel_main()
     bool right = true;
     for(int x = 0;;)
     {
-        char pressed = in(0x60);
-        if(pressed == 0x10)
-        {
-            serial_char('q');
-        }
-
         // clear path
         draw_rect(0,0,SCRN_WIDTH, 100, (Color){255,255,255}, tagfb);
 
