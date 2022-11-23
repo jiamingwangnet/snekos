@@ -9,7 +9,8 @@ section .text
   isr%1:
     cli
     call isr_handler
-    hlt
+    sti
+    ret
 %endmacro
 
 %macro ISR_ERRCODE 1
@@ -17,14 +18,17 @@ section .text
   isr%1:
     cli
     call isr_handler
-    hlt
+    sti
+    ret
 %endmacro
 
 %macro IRQ 2
   global irq%1
   irq%1:
     cli
-    hlt
+    call irq_handler
+    sti
+    ret
 %endmacro
 
 ISR_NOERRCODE  0
