@@ -4,6 +4,7 @@
 #include "include/multiboot_init.h"
 #include "include/graphics.h"
 #include "include/idt.h"
+#include "include/handlers.h"
 
 void kernel_main()
 {
@@ -12,6 +13,8 @@ void kernel_main()
     init_serial();
     init_pic();
     init_idt();
+
+    add_handler(33, &keyboard_handler);
 
     #ifdef DEBUG_LOG
             serial_str("framebuffer address: 0x");
@@ -107,6 +110,8 @@ void kernel_main()
     // eyes
     draw_rect(SCRN_WIDTH/2 - 130, 200, 60, 120, (Color){0,0,0}, tagfb);
     draw_rect(SCRN_WIDTH/2 + 70, 200, 60, 120, (Color){0,0,0}, tagfb);
+
+    __asm__("int 33");
     
     bool right = true;
     for(int x = 0;;)

@@ -22,11 +22,6 @@ void add_idt_entry(uint8_t index, uint64_t offset, uint16_t sel, uint8_t attr)
     entries[index].type_attributes = attr;
 }
 
-void irq_handler()
-{
-    serial_str("\n\nIRQ HANDLER\n");
-    draw_rect(SCRN_WIDTH/2 - 250,SCRN_HEIGHT/2 - 250,500,500,(Color){0,0,255}, tagfb);
-}
 void isr_handler()
 {
     serial_str("\n\nISR HANDLER\n");

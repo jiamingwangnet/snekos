@@ -26,6 +26,7 @@ section .text
   global irq%1
   irq%1:
     cli
+    mov edi, %2
     call irq_handler
     sti
     ret
