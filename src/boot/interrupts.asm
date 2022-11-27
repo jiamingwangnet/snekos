@@ -7,29 +7,25 @@ section .text
 %macro ISR_NOERRCODE 1
   global isr%1
   isr%1:
-    cli
+    mov edi, %1
     call isr_handler
-    sti
-    ret
+    iretq
 %endmacro
 
 %macro ISR_ERRCODE 1
   global isr%1
   isr%1:
-    cli
+    mov edi, %1
     call isr_handler
-    sti
-    ret
+    iretq
 %endmacro
 
 %macro IRQ 2
   global irq%1
   irq%1:
-    cli
     mov edi, %2
     call irq_handler
-    sti
-    ret
+    iretq
 %endmacro
 
 ISR_NOERRCODE  0

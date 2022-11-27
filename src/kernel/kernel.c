@@ -6,15 +6,21 @@
 #include "include/idt.h"
 #include "include/handlers.h"
 
+void printshit()
+{
+    serial_char('q');
+}
+
+
 void kernel_main()
 {
     init_framebuffer();
 
-    init_serial();
-    init_pic();
-    init_idt();
-
     add_handler(33, &keyboard_handler);
+    add_handler(32, &printshit);
+
+    init_serial();
+    init_idt();
 
     #ifdef DEBUG_LOG
             serial_str("framebuffer address: 0x");
@@ -110,8 +116,7 @@ void kernel_main()
     // eyes
     draw_rect(SCRN_WIDTH/2 - 130, 200, 60, 120, (Color){0,0,0}, tagfb);
     draw_rect(SCRN_WIDTH/2 + 70, 200, 60, 120, (Color){0,0,0}, tagfb);
-
-    __asm__("int 33");
+    
     
     bool right = true;
     for(int x = 0;;)

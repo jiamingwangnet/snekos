@@ -1,6 +1,7 @@
 #pragma once
 
 #include "types.h"
+#include "idt.h"
 
 typedef void (*handler_t)(void);
 

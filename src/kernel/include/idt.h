@@ -2,6 +2,50 @@
 
 #include "types.h"
 
+#define PIC1_COMMAND 0x20
+#define PIC1_DATA    0x21
+#define PIC2_COMMAND 0xA0
+#define PIC2_DATA    0xA1
+
+#define PIC_EOI 0x20
+
+#define ICW1_ICW4	0x01		/* ICW4 (not) needed */
+#define ICW1_SINGLE	0x02		/* Single (cascade) mode */
+#define ICW1_INTERVAL4	0x04		/* Call address interval 4 (8) */
+#define ICW1_LEVEL	0x08		/* Level triggered (edge) mode */
+#define ICW1_INIT	0x10		/* Initialization - required! */
+ 
+#define ICW4_8086	0x01		/* 8086/88 (MCS-80/85) mode */
+#define ICW4_AUTO	0x02		/* Auto (normal) EOI */
+#define ICW4_BUF_SLAVE	0x08		/* Buffered mode/slave */
+#define ICW4_BUF_MASTER	0x0C		/* Buffered mode/master */
+#define ICW4_SFNM	0x10		/* Special fully nested (not) */
+
+struct IDTEntry { // 64bit
+    // offset is the address of the handler
+    uint16_t offset_1;        // offset bits 0..15
+    uint16_t selector;        // a code segment selector in GDT or LDT
+    uint8_t  ist;             // bits 0..2 holds Interrupt Stack Table offset, rest of bits zero.
+    uint8_t  type_attributes; // gate type, dpl, and p fields
+    uint16_t offset_2;        // offset bits 16..31
+    uint32_t offset_3;        // offset bits 32..63
+    uint32_t zero;            // reserved
+} __attribute__((packed));
+
+struct IDTPtr
+{
+    uint16_t size;
+    uint64_t base;
+} __attribute__((packed));
+
+void add_idt_entry(uint8_t index, uint64_t offset, uint16_t sel, uint8_t attr);
+void init_idt();
+void isr_handler(uint8_t id);
+
+// configure PIC (interrupt controller)
+
+void init_pic(uint8_t offset1, uint8_t offset2);
+
 extern void isr0();
 extern void isr1();
 extern void isr2();
@@ -52,28 +96,3 @@ extern void irq12();
 extern void irq13();
 extern void irq14();
 extern void irq15();
-
-struct IDTEntry { // 64bit
-    // offset is the address of the handler
-    uint16_t offset_1;        // offset bits 0..15
-    uint16_t selector;        // a code segment selector in GDT or LDT
-    uint8_t  ist;             // bits 0..2 holds Interrupt Stack Table offset, rest of bits zero.
-    uint8_t  type_attributes; // gate type, dpl, and p fields
-    uint16_t offset_2;        // offset bits 16..31
-    uint32_t offset_3;        // offset bits 32..63
-    uint32_t zero;            // reserved
-} __attribute__((packed));
-
-struct IDTPtr
-{
-    uint16_t size;
-    uint32_t base;
-} __attribute__((packed));
-
-void add_idt_entry(uint8_t index, uint64_t offset, uint16_t sel, uint8_t attr);
-void init_idt();
-void isr_handler();
-
-// configure PIC (interrupt controller)
-
-void init_pic();

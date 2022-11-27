@@ -4,7 +4,6 @@ global multiboot_info
 global page_table_l2
 
 extern long_mode_start
-extern idt64
 
 section .text ; program
 bits 32
