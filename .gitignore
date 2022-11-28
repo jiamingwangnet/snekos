@@ -4,5 +4,6 @@
 resources.txt
 run.bat
 run_debug.bat
+run_console.bat
 /.vscode
 /debug
