@@ -87,19 +87,7 @@ void init_idt()
     init_pic(0x20, 0x28);
 
     for(uint8_t i = 0; i < 16; i++)
-        pic_mask_irq(i);
-    
-    char maskb[16];
-    itoa(in(PIC1_DATA), maskb, 2);
-    serial_str(maskb);
-    serial_char('\n');
-
-    pic_unmask_irq(1);
-
-    char maska[16];
-    itoa(in(PIC1_DATA), maska, 2);
-    serial_str(maska);
-    serial_char('\n');
+        pic_unmask_irq(i);
 
     pointer.size = (uint16_t)sizeof(entries) - 1;
     pointer.base = (uintptr_t) &entries[0];
