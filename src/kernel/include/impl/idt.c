@@ -85,11 +85,24 @@ void init_idt()
     add_idt_entry(47, (uint64_t)&irq15, 0x8, 0x8E);
 
     init_pic(0x20, 0x28);
-    // out(PIC1_DATA, 0xfd);
-    // out(PIC2_DATA, 0xff);
+
+    for(uint8_t i = 0; i < 16; i++)
+        pic_mask_irq(i);
+    
+    char maskb[16];
+    itoa(in(PIC1_DATA), maskb, 2);
+    serial_str(maskb);
+    serial_char('\n');
+
+    pic_unmask_irq(1);
+
+    char maska[16];
+    itoa(in(PIC1_DATA), maska, 2);
+    serial_str(maska);
+    serial_char('\n');
 
     pointer.size = (uint16_t)sizeof(entries) - 1;
-    pointer.base = (uintptr_t) &entries;
+    pointer.base = (uintptr_t) &entries[0];
 
     load_idt(&pointer);
 }
@@ -114,4 +127,44 @@ void init_pic(uint8_t offset1, uint8_t offset2)
 
     out(PIC1_DATA, mask_1); // restore masks
     out(PIC2_DATA, mask_2);
+}
+
+void pic_mask_irq(uint8_t irq)
+{
+    uint16_t port;
+    uint8_t masks;
+
+    if(irq < 8)
+    {
+        port = PIC1_DATA;
+    }
+    else
+    {
+        port = PIC2_DATA;
+        irq -= 8;
+    }
+
+    masks = in(port);
+    masks |= (1 << irq);
+    out(port, masks);
+}
+
+void pic_unmask_irq(uint8_t irq)
+{
+    uint16_t port;
+    uint8_t masks;
+
+    if(irq < 8)
+    {
+        port = PIC1_DATA;
+    }
+    else
+    {
+        port = PIC2_DATA;
+        irq -= 8;
+    }
+
+    masks = in(port);
+    masks &= ~(1 << irq);
+    out(port, masks);
 }

@@ -116,8 +116,7 @@ void kernel_main()
     // eyes
     draw_rect(SCRN_WIDTH/2 - 130, 200, 60, 120, (Color){0,0,0}, tagfb);
     draw_rect(SCRN_WIDTH/2 + 70, 200, 60, 120, (Color){0,0,0}, tagfb);
-    
-    
+
     bool right = true;
     for(int x = 0;;)
     {
