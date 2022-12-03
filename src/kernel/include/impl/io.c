@@ -1,13 +1,13 @@
 #include "../io.h"
 
-void out(uint16_t port, uint8_t data)
+inline __attribute__((always_inline)) void out(uint16_t port, uint8_t data)
 {
-    __asm__("out %%dx, %%ax" :: "d"(port), "a"(data));
+    __asm__ volatile("out %1, %0" : : "a"(data), "Nd"(port));
 }
 
-uint8_t in(uint16_t port)
+inline __attribute__((always_inline)) uint8_t in(uint16_t port)
 {
     uint8_t o;
-    __asm__("in %%ax, %%dx" : "=a"(o) : "d"(port));
+    __asm__ volatile("in %0, %1" : "=a"(o) : "Nd"(port));
     return o;
 }
