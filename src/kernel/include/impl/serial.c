@@ -35,7 +35,7 @@ int serial_received()
 
 void serial_char(char c)
 {
-    // while(is_transmit_empty() == 0);
+    while(is_transmit_empty() == 0);
     out(COM1, c);
 }
 
@@ -49,7 +49,7 @@ void serial_str(const char* str)
 
 uint8_t iserial_char(char c)
 {
-    // while(serial_received() == 0);
+    while(serial_received() == 0);
 
     return in(COM1);
 }
