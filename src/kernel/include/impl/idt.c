@@ -30,7 +30,7 @@ void isr_handler(uint8_t id)
     itoa(id, c_id, 10);
     serial_str(c_id);
     serial_char('\n');
-    __asm__("cli\nhlt");
+    __asm__ volatile("cli\nhlt");
 }
 
 void init_idt()
@@ -83,6 +83,9 @@ void init_idt()
     add_idt_entry(45, (uint64_t)&irq13, 0x8, 0x8E);
     add_idt_entry(46, (uint64_t)&irq14, 0x8, 0x8E);
     add_idt_entry(47, (uint64_t)&irq15, 0x8, 0x8E);
+
+    for(uint8_t i = 0; i < 16; i++)
+        pic_mask_irq(i);
 
     init_pic(0x20, 0x28);
 
@@ -141,7 +144,7 @@ void pic_unmask_irq(uint8_t irq)
 {
     uint16_t port;
     uint8_t masks;
-
+    
     if(irq < 8)
     {
         port = PIC1_DATA;

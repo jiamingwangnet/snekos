@@ -1,5 +1,6 @@
 #include "../keyboard.h"
 #include "../io.h"
+#include "../serial.h"
 
 void handle_key()
 {

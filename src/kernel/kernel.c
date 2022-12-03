@@ -11,7 +11,6 @@ void printshit()
     serial_char('q');
 }
 
-
 void kernel_main()
 {
     init_framebuffer();

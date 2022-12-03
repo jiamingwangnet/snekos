@@ -8,6 +8,8 @@ extern long_mode_start
 section .text ; program
 bits 32
 start:
+    cli
+
     ; entry
     mov esp, stack_top ; setup stack pointer  
 

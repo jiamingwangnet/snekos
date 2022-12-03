@@ -1,5 +1,7 @@
 #include "../handlers.h"
 #include "../keyboard.h"
+#include "../io.h"
+#include "../serial.h"
 
 handler_t handlers[256] = {};
 
