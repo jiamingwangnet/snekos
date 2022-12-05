@@ -4,14 +4,16 @@
 #include "../serial.h"
 
 handler_t handlers[256] = {};
-
+// #define DEBUG_LOG_IRQ
 void irq_handler(uint8_t id)
 {
+    #ifdef DEBUG_LOG_IRQ
     serial_str("\n\nIrq Handled ");
     char c_id[15];
     itoa(id, c_id, 10);
     serial_str(c_id);
     serial_char('\n');
+    #endif
 
     handler_t handler = handlers[id];
     if(handler) handler();

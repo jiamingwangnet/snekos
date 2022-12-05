@@ -6,17 +6,11 @@
 #include "include/idt.h"
 #include "include/handlers.h"
 
-void printshit()
-{
-    serial_char('q');
-}
-
 void kernel_main()
 {
     init_framebuffer();
 
     add_handler(33, &keyboard_handler);
-    add_handler(32, &printshit);
 
     init_serial();
     init_idt();

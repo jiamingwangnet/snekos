@@ -93,9 +93,9 @@ void init_idt()
     for(uint8_t i = 0; i < 16; i++)
         pic_unmask_irq(i);
 
-    //pic_mask_irq(0);
+    pic_mask_irq(0);
 
-    __asm__ ("sti");
+    __asm__ ("sti"); // enable irq or something idk
 
     pointer.size = (uint16_t)sizeof(entries) - 1;
     pointer.base = (uintptr_t) &entries[0];
