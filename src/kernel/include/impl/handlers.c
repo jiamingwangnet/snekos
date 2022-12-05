@@ -7,6 +7,12 @@ handler_t handlers[256] = {};
 
 void irq_handler(uint8_t id)
 {
+    serial_str("\n\nIrq Handled ");
+    char c_id[15];
+    itoa(id, c_id, 10);
+    serial_str(c_id);
+    serial_char('\n');
+
     handler_t handler = handlers[id];
     if(handler) handler();
 

@@ -39,7 +39,7 @@ struct IDTPtr
     uint64_t base;
 } __attribute__((packed));
 
-void add_idt_entry(uint8_t index, uint64_t offset, uint16_t sel, uint8_t attr);
+void add_idt_entry(uint8_t index, uint64_t offset, uint16_t sel, uint8_t attr, uint8_t ist);
 void init_idt();
 void isr_handler(uint8_t id);
 
