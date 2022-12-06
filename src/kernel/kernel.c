@@ -4,16 +4,16 @@
 #include "include/multiboot_init.h"
 #include "include/graphics.h"
 #include "include/idt.h"
-#include "include/handlers.h"
+#include "include/keyboard.h"
 
 void kernel_main()
 {
     init_framebuffer();
 
-    add_handler(33, &keyboard_handler);
-
     init_serial();
     init_idt();
+
+    init_keyboard(serial_keyboard);
 
     #ifdef DEBUG_LOG
             serial_str("framebuffer address: 0x");

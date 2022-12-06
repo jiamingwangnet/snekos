@@ -28,9 +28,3 @@ void add_handler(uint8_t index, handler_t hdlr)
 {
     handlers[index] = hdlr;
 }
-
-// handlers
-void keyboard_handler()
-{
-    handle_key();
-}
