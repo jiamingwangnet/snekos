@@ -25,7 +25,7 @@ void add_idt_entry(uint8_t index, uint64_t offset, uint16_t sel, uint8_t attr, u
 
 void isr_handler(uint8_t id)
 {
-    serial_str("\n\ninterrupt hit ");
+    serial_str("\n\ninterrupt hit!! ID: ");
     char c_id[15];
     itoa(id, c_id, 10);
     serial_str(c_id);
