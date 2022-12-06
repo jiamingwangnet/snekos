@@ -5,6 +5,7 @@
 #include "include/graphics.h"
 #include "include/idt.h"
 #include "include/keyboard.h"
+#include "include/timer.h"
 
 void kernel_main()
 {
@@ -14,6 +15,7 @@ void kernel_main()
     init_idt();
 
     init_keyboard(serial_keyboard);
+    init_timer();
 
     #ifdef DEBUG_LOG
             serial_str("framebuffer address: 0x");
@@ -110,19 +112,30 @@ void kernel_main()
     draw_rect(SCRN_WIDTH/2 - 130, 200, 60, 120, (Color){0,0,0}, tagfb);
     draw_rect(SCRN_WIDTH/2 + 70, 200, 60, 120, (Color){0,0,0}, tagfb);
 
+    wait_ticks(3000);
+    // while(1)
+    // {
+    //     char time[64];
+    //     itoa(get_time(), time, 10);
+    //     serial_str(time);
+    //     serial_char('\n');
+    // }
+
+    draw_rect(0, 0, SCRN_WIDTH, SCRN_HEIGHT, (Color){0xf,0xf,0xf}, tagfb);
+
     bool right = true;
     for(int x = 0;;)
     {
         // clear path
-        draw_rect(0,0,SCRN_WIDTH, 100, (Color){255,255,255}, tagfb);
+        draw_rect(0,0,SCRN_WIDTH, 10, (Color){0x30,0x30,0x30}, tagfb);
 
-        draw_rect(x, 0, 100, 100, (Color){122, 199, 40}, tagfb);
+        draw_rect(x, 0, 10, 10, (Color){122, 199, 40}, tagfb);
         if(right)
             x++;
         else
             x--;
 
-        if(x + 100 >= SCRN_WIDTH)
+        if(x + 10 >= SCRN_WIDTH)
             right = false;
         else if(x <= 0)
             right = true;
