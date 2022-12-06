@@ -1,6 +1,7 @@
 #include "../keyboard.h"
 #include "../io.h"
 #include "../serial.h"
+#include "../handlers.h"
 
 // US QWERTY
 const char keys_lower[KEY_MAX] = {
@@ -16,7 +17,7 @@ const char keys_upper[KEY_MAX] = {
 
 void init_keyboard(key_callback_t callback)
 {
-    add_handler(33, &handle_key);
+    add_handler(IRQ1, &handle_key);
     key_callback = callback;
 }
 
