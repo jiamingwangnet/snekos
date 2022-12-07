@@ -6,6 +6,7 @@
 #include "include/idt.h"
 #include "include/keyboard.h"
 #include "include/timer.h"
+#include "include/font.h"
 
 void kernel_main()
 {
@@ -13,6 +14,7 @@ void kernel_main()
 
     init_serial();
     init_idt();
+    init_font();
 
     init_keyboard(serial_keyboard);
     init_timer();
@@ -121,6 +123,18 @@ void kernel_main()
     //     serial_char('\n');
     // }
 
+    draw_rect(0, 0, SCRN_WIDTH, SCRN_HEIGHT, (Color){0xf,0xf,0xf}, tagfb);
+    draw_str(20, 20, (Color){235, 255, 224}, (Color){0xf,0xf,0xf},
+                    "Hello, World!\n"
+                     "TEST CMD!!!\n"
+                     "The Quick Brown Fox Jumps Over The Lazy Dog\n"
+                     "the quick brown fox fox jumps over the lazy dog.\n"
+                     "THE QUICK BROWN FOX JUMPS OVER THE LAZY DOG.\n"
+                     "1234567890\n"
+                     "~!@#$%^&*()_+<>[]{}", 
+                     tagfb);
+
+    wait_ticks(1500);
     draw_rect(0, 0, SCRN_WIDTH, SCRN_HEIGHT, (Color){0xf,0xf,0xf}, tagfb);
 
     bool right = true;
