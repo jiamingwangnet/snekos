@@ -12,8 +12,14 @@ const char keys_lower[KEY_MAX] = {
 };
 
 const char keys_upper[KEY_MAX] = {
-
+    0, 0, '!', '@', '#', '$', '%', '^', '&', '*', '(', ')', '_', '+', 0,
+        0, 'Q', 'W', 'E', 'R', 'T', 'Y', 'U', 'I', 'O', 'P', '{', '}', 0, 0,
+            'A', 'S', 'D', 'F', 'G', 'H', 'J', 'K', 'L', ':', '"', '~', 0, '|',
+              'Z', 'X', 'C', 'V', 'B', 'N', 'M', '<', '>', '?', 0, 0, 0, ' '
 };
+
+bool holding_lshift = false;
+bool holding_rshift = false;
 
 void init_keyboard(key_callback_t callback)
 {
@@ -23,14 +29,34 @@ void init_keyboard(key_callback_t callback)
 
 void handle_key()
 {
-    char c = in(0x60);
+    uint8_t c = in(0x60);
 
     /*
         TODO:
         - add function keys
     */
 
-    char key = c > KEY_MAX ? keys_lower[c - RELEASE_OFFSET] : keys_lower[c];
+    if(c == L_SHIFT)
+    {
+        holding_lshift = true;
+    }
+    else if(c == L_SHIFT_RELEASE)
+    {
+        holding_lshift = false;
+    }
+
+    if(c == R_SHIFT)
+    {
+        holding_rshift = true;
+    }
+    else if(c == R_SHIFT_RELEASE)
+    {
+        holding_rshift = false;
+    }
+
+    const char* keys = holding_lshift | holding_rshift ? keys_upper : keys_lower;
+
+    char key = c > KEY_MAX ? keys[c - RELEASE_OFFSET] : keys[c];
     bool release = c > KEY_MAX;
     bool modifier = key == 0;
     if(modifier)
