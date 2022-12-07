@@ -25,6 +25,8 @@ void init_console(uint32_t sx, uint32_t sy, Color fg, Color bg, framebuffer_tag*
 
 void shell_keyboard(Key_Info info)
 {
+    PSF1_font* font = get_font();
+
     if(!info.release && !info.modifier)
     {
         shell_draw(info.key);
@@ -32,13 +34,18 @@ void shell_keyboard(Key_Info info)
     }
     else if(!info.release && info.modifier && info.key == ENTER)
     {
+        // clear cursor
+        draw_rect(col * (PSF1_WIDTH + col_pad) + x, row * (font->charsize + line_pad) + y, PSF1_WIDTH + col_pad, font->charsize + line_pad, background, framebuffer);
+
         row ++;
         col = 0;
     }
     else if(!info.release && info.modifier && info.key == BACKSPACE)
     {
         if(col == 0) return;
-        PSF1_font* font = get_font();
+        // clear cursor
+        draw_rect(col * (PSF1_WIDTH + col_pad) + x, row * (font->charsize + line_pad) + y, PSF1_WIDTH + col_pad, font->charsize + line_pad, background, framebuffer);
+
         col --;
         draw_rect(col * (PSF1_WIDTH + col_pad) + x, row * (font->charsize + line_pad) + y, PSF1_WIDTH + col_pad, font->charsize + line_pad, background, framebuffer);
     }
@@ -48,4 +55,10 @@ void shell_draw(char c)
 {
     PSF1_font* font = get_font();
     draw_char(col * (PSF1_WIDTH + col_pad) + x, row * (font->charsize + line_pad) + y, foreground, background, c, framebuffer);
+}
+
+void draw_cursor()
+{
+    PSF1_font* font = get_font();
+    draw_rect(col * (PSF1_WIDTH + col_pad) + x, row * (font->charsize + line_pad) + y, 2, font->charsize, foreground, framebuffer);
 }

@@ -142,6 +142,8 @@ void kernel_main()
     bool right = true;
     for(int x = 0;;)
     {
+        draw_cursor();
+
         // clear path
         draw_rect(0,0,SCRN_WIDTH, 10, (Color){0x30,0x30,0x30}, tagfb);
 
