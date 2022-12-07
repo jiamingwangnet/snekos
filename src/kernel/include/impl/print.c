@@ -1,3 +1,5 @@
+#ifdef VGA_TEXT_MODE
+
 #include "../print.h"
 #include "../types.h"
 
@@ -87,3 +89,4 @@ void clear_srn()
         clear_row(row);
     }
 }
+#endif

@@ -1,3 +1,4 @@
+#ifdef VGA_TEXT_MODE
 #pragma once
 
 #include "types.h"
@@ -28,3 +29,4 @@ void set_color(uint8_t foreground, uint8_t background);
 void clear_srn();
 void clear_row(size_t row);
 void print_newline();
+#endif
