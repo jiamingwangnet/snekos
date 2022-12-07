@@ -18,3 +18,4 @@ extern char _binary_assets_vga_font_psf_end;
 void init_font();
 void draw_char(uint32_t x, uint32_t y, Color foreground, Color background, char c, framebuffer_tag* fb);
 void draw_str(uint32_t x, uint32_t y, Color foreground, Color background, const char* str, framebuffer_tag* fb);
+PSF1_font* get_font();

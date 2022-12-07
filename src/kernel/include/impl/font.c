@@ -66,3 +66,5 @@ void draw_str(uint32_t x, uint32_t y, Color foreground, Color background, const 
         draw_char(dx, line, foreground, background, *str, fb);
     }
 }
+
+PSF1_font* get_font() { return font; }

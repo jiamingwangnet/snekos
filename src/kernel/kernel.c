@@ -7,6 +7,7 @@
 #include "include/keyboard.h"
 #include "include/timer.h"
 #include "include/font.h"
+#include "include/console.h"
 
 void kernel_main()
 {
@@ -16,7 +17,7 @@ void kernel_main()
     init_idt();
     init_font();
 
-    init_keyboard(serial_keyboard);
+    init_console(20, 20, (Color){235, 255, 224}, (Color){0xf,0xf,0xf}, tagfb);
     init_timer();
 
     #ifdef DEBUG_LOG
@@ -135,6 +136,7 @@ void kernel_main()
                      tagfb);
 
     wait_ticks(1500);
+    init_keyboard(shell_keyboard);
     draw_rect(0, 0, SCRN_WIDTH, SCRN_HEIGHT, (Color){0xf,0xf,0xf}, tagfb);
 
     bool right = true;
