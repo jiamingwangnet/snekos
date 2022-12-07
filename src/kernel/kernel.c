@@ -116,13 +116,6 @@ void kernel_main()
     draw_rect(SCRN_WIDTH/2 + 70, 200, 60, 120, (Color){0,0,0}, tagfb);
 
     wait_ticks(3000);
-    // while(1)
-    // {
-    //     char time[64];
-    //     itoa(get_time(), time, 10);
-    //     serial_str(time);
-    //     serial_char('\n');
-    // }
 
     draw_rect(0, 0, SCRN_WIDTH, SCRN_HEIGHT, (Color){0xf,0xf,0xf}, tagfb);
     draw_str(20, 20, (Color){235, 255, 224}, (Color){0xf,0xf,0xf},
