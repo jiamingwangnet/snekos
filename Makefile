@@ -6,7 +6,7 @@ C_OBJ_FILES := $(patsubst src/kernel/%.c, build/kernel/%.o, $(C_SOURCE_FILES))
 
 $(C_OBJ_FILES): build/kernel/%.o : src/kernel/%.c
 	mkdir -p $(dir $@) && \
-	gcc -masm=intel -m64 -ffreestanding -c $(patsubst build/kernel/%.o, src/kernel/%.c, $@) -o $@
+	gcc -mcmodel=large -masm=intel -m64 -ffreestanding -c $(patsubst build/kernel/%.o, src/kernel/%.c, $@) -o $@
 
 $(ASM_OBJ_FILES): build/boot/%.o : src/boot/%.asm
 	mkdir -p $(dir $@) && \
@@ -19,6 +19,7 @@ build/assets/vga_font.o: assets/vga_font.psf
 
 .PHONY: build
 build: $(C_OBJ_FILES) $(ASM_OBJ_FILES) build/assets/vga_font.o
+	mkdir -p dist
 	ld --nmagic --output=build/kernel.bin --script=linker.ld $(C_OBJ_FILES) $(ASM_OBJ_FILES) build/assets/vga_font.o && \
 	cp build/kernel.bin bootloader/iso/boot && \
 	grub-mkrescue -o dist/SnekOS.iso bootloader/iso
