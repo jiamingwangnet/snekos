@@ -2,34 +2,31 @@ ENTRY(start)
 
 SECTIONS
 {
-    . = 0xC0100000; /* start 1 megabyte in */
+    . = 1M; /* start 1 megabyte in */
 
-    _kernel_start = .;
-    .multiboot ALIGN(4K) : AT(ADDR(.multiboot) - 0xC0000000)
+    .multiboot : ALIGN(4K)
     {
         KEEP(*(.multiboot)) /* the multiboot header for grub */
     }
 
-	.text ALIGN(4K) : AT(ADDR(.text) - 0xC0000000)
+	.text : ALIGN(4K)
 	{
 		*(.text) /* text section */
 	}
 
-    .rodata ALIGN(4K) : AT(ADDR(.rodata) - 0xC0000000)
+    .rodata : ALIGN(4K)
     {
         *(.rodata)
     }
 
-    .data ALIGN(4K) : AT(ADDR(.data) - 0xC0000000)
+    .data : ALIGN(4K)
     {
         *(.data)
     }
 
-    .bss ALIGN(4K) : AT(ADDR(.bss) - 0xC0000000)
+    .bss : ALIGN(4K)
     {
         *(COMMON)
         *(.bss)
     }
-
-    _kernel_end = .;
 }

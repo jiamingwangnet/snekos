@@ -1,40 +1,33 @@
+global start
 global gdt64.data
-global multiboot_info
-global page_table_l2
-global stack_top
-global gdt64.pointer
 
 extern long_mode_start
-extern _kernel_start
-extern _kernel_end
-
-%define HIGH_ADDR 0xC0000000
 
 section .text ; program
-global start:function (start.end - start)
 bits 32
 start:
-    cli
     ; entry
 
-    mov esp, (stack_top - HIGH_ADDR) ; setup stack pointer  
+    mov esp, stack_top; setup stack pointer  
 
     call setup_tables
     call enable_paging ; page fault
 
-    jmp gdt64.code:(long_mode_start - HIGH_ADDR) ; far jump
-.end:
-err:
+    ; grub starts protected mode which means it also loads its own gdt, however, grub's gdt should not be used
+    lgdt [gdt64.pointer] ; load the gdt
+
+    jmp gdt64.code:long_mode_start ; far jump
+
     hlt
 
 setup_tables:
-    mov eax, (page_table_l3 - HIGH_ADDR) ; get physical address
+    mov eax, page_table_l3
     or eax, 0b11 ; present bit and writable bit
-    mov dword [(page_table_l4 - HIGH_ADDR) + 0], eax ; make page_table_l4 point to page_table_l3
+    mov dword [page_table_l4 + 0], eax ; make page_table_l4 point to page_table_l3
 
     mov eax, page_table_l2
     or eax, 0b11
-    mov dword [(page_table_l3 - HIGH_ADDR) + 0], eax
+    mov dword [page_table_l3 + 0], eax
 
     ; loop
     mov ecx, 0 ; ecx is the counter
@@ -42,7 +35,7 @@ setup_tables:
     mov eax, 0x200000  ; 2 MiB, eax is used for multiplication
     mul ecx ; muliplies ecx by eax and stores the result in eax
     or eax, 0b10000011 ; the first bit indicates that this page is very large (huge page bit)
-    mov dword [(page_table_l2 - HIGH_ADDR) + ecx * 8], eax ; write the page into the table
+    mov [page_table_l2 + ecx * 8], eax ; write the page into the table
 
     inc ecx
     cmp ecx, 512 ; loop 512 times
@@ -51,9 +44,9 @@ setup_tables:
     ret
 
 enable_paging:
-    mov eax, (page_table_l4 - HIGH_ADDR) ; cannot directly move to cr3
+    mov eax, page_table_l4 ; cannot directly move to cr3
     mov cr3, eax ; move the page table to cr3 (control register)
-    
+
     ; enable PAE
     mov eax, cr4 ; modify the contents of cr4
     or eax, 1 << 5 ; set the 5th bit
@@ -65,15 +58,12 @@ enable_paging:
     or eax, 1 << 8
     wrmsr
 
-    ; grub starts protected mode which means it also loads its own gdt, however, grub's gdt should not be used
-    lgdt [gdt64.pointer_low - HIGH_ADDR] ; load the gdt
-
     ; enable paging
     mov eax, cr0
     or eax, 1 << 31
     or eax, 1 << 16
     mov cr0, eax
-    
+
     ret
 
 section .bss ; uninitialised data
@@ -110,6 +100,3 @@ gdt64:
 .pointer:
     dw .pointer - gdt64 - 1 ; length (2 bytes)
     dq gdt64 ; the address of the table
-.pointer_low:
-    dw .pointer - gdt64 - 1 ; length (2 bytes)
-    dq gdt64 - HIGH_ADDR ; the address of the table

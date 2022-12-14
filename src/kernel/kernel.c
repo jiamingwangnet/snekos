@@ -1,4 +1,5 @@
 void kernel_main()
 {
-    *((int*)0xb8000)=0x07690748;
+    for(int i = 0; i < 200; i++)
+    *((int*)0xb8000 + i)=0x1d691d48;
 }
