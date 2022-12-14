@@ -12,14 +12,9 @@ $(ASM_OBJ_FILES): build/boot/%.o : src/boot/%.asm
 	mkdir -p $(dir $@) && \
 	nasm -f elf64 $(patsubst build/boot/%.o, src/boot/%.asm, $@) -o $@
 
-# temporary console font loading
-build/assets/vga_font.o: assets/vga_font.psf
-	mkdir -p build/assets && \
-	objcopy -O elf64-x86-64 -B i386 -I binary assets/vga_font.psf build/assets/vga_font.o
-
 .PHONY: build
-build: $(C_OBJ_FILES) $(ASM_OBJ_FILES) build/assets/vga_font.o
+build: $(C_OBJ_FILES) $(ASM_OBJ_FILES)
 	mkdir -p dist
-	ld --nmagic --output=build/kernel.bin --script=linker.ld $(C_OBJ_FILES) $(ASM_OBJ_FILES) build/assets/vga_font.o && \
+	ld --nmagic --output=build/kernel.bin --script=linker.ld $(C_OBJ_FILES) $(ASM_OBJ_FILES) && \
 	cp build/kernel.bin bootloader/iso/boot && \
 	grub-mkrescue -o dist/SnekOS.iso bootloader/iso

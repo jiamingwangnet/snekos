@@ -23,8 +23,8 @@ long_mode_start:
 .higher_half:
     ; adjust addresses
     mov esp, stack_top
-    
-    ; lgdt [gdt64.pointer]
+
+    lgdt [gdt64.pointer]
 
     call kernel_main
 

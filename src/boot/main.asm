@@ -19,56 +19,13 @@ start:
 
     mov esp, (stack_top - HIGH_ADDR) ; setup stack pointer  
 
-    call save_multiboot_info 
-    call check_multiboot
-    call check_cpuid
-    call check_long_mode
-
     call setup_tables
-    
     call enable_paging ; page fault
 
     jmp gdt64.code:(long_mode_start - HIGH_ADDR) ; far jump
 .end:
 err:
     hlt
-
-check_multiboot:
-    cmp eax, 0x36d76289
-    jne err
-    ret
-
-check_cpuid:
-    pushfd
-    pop eax
-    mov ecx, eax
-    xor eax, 1 << 21
-    push eax
-    popfd
-    pushfd
-    pop eax
-    push ecx
-    popfd
-    cmp eax, ecx
-    je err
-    ret
-
-check_long_mode:
-    mov eax, 0x80000000
-    cpuid
-    cmp eax, 0x80000001
-    jb err
-
-    mov eax, 0x80000001
-    cpuid
-    test edx, 1 << 29
-    jz err
-
-    ret
-
-save_multiboot_info:
-    mov dword [multiboot_info], ebx
-    ret
 
 setup_tables:
     mov eax, (page_table_l3 - HIGH_ADDR) ; get physical address
@@ -133,8 +90,6 @@ align 16
 stack_bottom:
     resb 16384 ; reserve 16KiB of space
 stack_top:
-
-multiboot_info resb 4
 
 section .rodata ; readonly data
 ; global discriptor table
