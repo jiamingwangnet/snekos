@@ -10,17 +10,7 @@ start:
 
     mov esp, stack_top; setup stack pointer  
 
-    call setup_tables
-    call enable_paging ; page fault
-
-    ; grub starts protected mode which means it also loads its own gdt, however, grub's gdt should not be used
-    lgdt [gdt64.pointer] ; load the gdt
-
-    jmp gdt64.code:long_mode_start ; far jump
-
-    hlt
-
-setup_tables:
+    ; setup tables
     mov eax, page_table_l3
     or eax, 0b11 ; present bit and writable bit
     mov dword [page_table_l4 + 0], eax ; make page_table_l4 point to page_table_l3
@@ -40,10 +30,9 @@ setup_tables:
     inc ecx
     cmp ecx, 512 ; loop 512 times
     jne .map_l2_table
+    
 
-    ret
-
-enable_paging:
+    ; enable paging
     mov eax, page_table_l4 ; cannot directly move to cr3
     mov cr3, eax ; move the page table to cr3 (control register)
 
@@ -64,7 +53,12 @@ enable_paging:
     or eax, 1 << 16
     mov cr0, eax
 
-    ret
+    ; grub starts protected mode which means it also loads its own gdt, however, grub's gdt should not be used
+    lgdt [gdt64.pointer] ; load the gdt
+
+    jmp gdt64.code:long_mode_start ; far jump
+
+    hlt
 
 section .bss ; uninitialised data
 ; stack
