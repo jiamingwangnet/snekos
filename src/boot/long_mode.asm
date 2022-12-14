@@ -3,6 +3,8 @@ global load_idt
 
 extern kernel_main
 extern gdt64.data
+extern stack_top
+extern gdt64.pointer
 
 section .text
 bits 64
@@ -14,6 +16,15 @@ long_mode_start:
     mov es, ax
     mov fs, ax
     mov gs, ax
+
+    mov rax, .higher_half
+    jmp rax
+
+.higher_half:
+    ; adjust addresses
+    mov esp, stack_top
+    
+    ; lgdt [gdt64.pointer]
 
     call kernel_main
 
