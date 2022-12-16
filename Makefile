@@ -1,16 +1,16 @@
-ASM_SOURCE_FILES := $(shell find src/boot/ -name *.asm)
-ASM_OBJ_FILES := $(patsubst src/boot/%.asm, build/boot/%.o, $(ASM_SOURCE_FILES))
+ASM_SOURCE_FILES := $(shell find src/ -name *.asm)
+ASM_OBJ_FILES := $(patsubst src/%.asm, build/%.o, $(ASM_SOURCE_FILES))
 
-C_SOURCE_FILES := $(shell find src/kernel/ -name *.c)
-C_OBJ_FILES := $(patsubst src/kernel/%.c, build/kernel/%.o, $(C_SOURCE_FILES))
+C_SOURCE_FILES := $(shell find src/ -name *.c)
+C_OBJ_FILES := $(patsubst src/%.c, build/%.o, $(C_SOURCE_FILES))
 
-$(C_OBJ_FILES): build/kernel/%.o : src/kernel/%.c
+$(C_OBJ_FILES): build/%.o : src/%.c
 	mkdir -p $(dir $@) && \
-	gcc -mcmodel=large -mno-sse -mno-red-zone -fno-pic -masm=intel -m64 -ffreestanding -c $(patsubst build/kernel/%.o, src/kernel/%.c, $@) -o $@
+	gcc -mcmodel=large -mno-sse -mno-red-zone -fno-pic -masm=intel -m64 -ffreestanding -c $(patsubst build/%.o, src/%.c, $@) -o $@
 
-$(ASM_OBJ_FILES): build/boot/%.o : src/boot/%.asm
+$(ASM_OBJ_FILES): build/%.o : src/%.asm
 	mkdir -p $(dir $@) && \
-	nasm -f elf64 $(patsubst build/boot/%.o, src/boot/%.asm, $@) -o $@
+	nasm -f elf64 $(patsubst build/%.o, src/%.asm, $@) -o $@
 
 # temporary console font loading
 build/assets/vga_font.o: assets/vga_font.psf
