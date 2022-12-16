@@ -5,7 +5,7 @@ SECTIONS
     . = 1M; /* start 1 megabyte in */
 
     _kernel_start = .;
-    _kernel_voffset = 0xC0000000;
+    _kernel_voffset = 0xffffffff80000000;
 
     .multiboot_header :
     {

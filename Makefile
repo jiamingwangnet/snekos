@@ -15,6 +15,6 @@ $(ASM_OBJ_FILES): build/boot/%.o : src/boot/%.asm
 .PHONY: build
 build: $(C_OBJ_FILES) $(ASM_OBJ_FILES)
 	mkdir -p dist
-	ld -m elf_x86_64 --nmagic --output=build/kernel.bin --script=linker.ld $(C_OBJ_FILES) $(ASM_OBJ_FILES) && \
+	ld -n -o build/kernel.bin -T linker.ld $(C_OBJ_FILES) $(ASM_OBJ_FILES) && \
 	cp build/kernel.bin bootloader/iso/boot && \
 	grub-mkrescue -o dist/SnekOS.iso bootloader/iso

@@ -4,7 +4,7 @@ global stack_top
 global gdt64.pointer
 
 extern kernel_main
-%define KERNEL_VOFFSET 0xC0000000
+%define KERNEL_VOFFSET 0xffffffff80000000
 %define PAGE_SIZE 0x200000
 %define PAGE_TABLE_ENTRY HUGEPAGE_BIT | WRITE_BIT | PRESENT_BIT
 %define LOOP_LIMIT 512
