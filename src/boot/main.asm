@@ -3,65 +3,133 @@ global gdt64.data
 global stack_top
 global gdt64.pointer
 
-extern long_mode_start
+extern kernel_main
 %define KERNEL_VOFFSET 0xC0000000
+%define PAGE_SIZE 0x200000
+%define PAGE_TABLE_ENTRY HUGEPAGE_BIT | WRITE_BIT | PRESENT_BIT
+%define LOOP_LIMIT 512
+%define PAGE_DIR_ENTRY_FLAGS 0b11
+%define PRESENT_BIT 1
+%define WRITE_BIT 0b10
+%define HUGEPAGE_BIT 0b10000000
 
 section .multiboot.text
 bits 32
 start:
-    ; entry
+    mov edi, ebx ; Address of multiboot structure
+    mov esi, eax ; Magic number
 
-    mov esp, stack_top - KERNEL_VOFFSET ; setup stack pointer  
+    mov esp, stack_top - KERNEL_VOFFSET
+    
+    mov eax, page_table_l3 - KERNEL_VOFFSET; Copy page_table_l3 address in eax
+    or eax, PRESENT_BIT | WRITE_BIT        ; set writable and present bits to 1
+    mov dword [(page_table_l4 - KERNEL_VOFFSET) + 0], eax   ; Copy eax content into the entry 0 of p4 table
 
-    ; setup tables
-    mov eax, page_table_l3 - KERNEL_VOFFSET
-    or eax, 0b11 ; present bit and writable bit
-    mov dword [(page_table_l4 - KERNEL_VOFFSET) + 0], eax ; make page_table_l4 point to page_table_l3
+    mov eax, page_table_l3_hh - KERNEL_VOFFSET  ; This will contain the mapping of the kernel in the higher half
+    or eax, PRESENT_BIT | WRITE_BIT
+    mov dword [(page_table_l4 - KERNEL_VOFFSET) + 511 * 8], eax
+
+    mov eax, page_table_l4 - KERNEL_VOFFSET ; Mapping the PML4 into itself
+    or eax, PRESENT_BIT | WRITE_BIT
+    mov dword [(page_table_l4 - KERNEL_VOFFSET) + 510 * 8], eax
+
+    mov eax, page_table_l2 - KERNEL_VOFFSET  ; Let's do it again, with page_table_l2
+    or eax, PRESENT_BIT | WRITE_BIT       ; Set the writable and present bits
+    mov dword [(page_table_l3 - KERNEL_VOFFSET) + 0], eax   ; Copy eax content in the 0th entry of p3
 
     mov eax, page_table_l2 - KERNEL_VOFFSET
-    or eax, 0b11
-    mov dword [(page_table_l3 - KERNEL_VOFFSET) + 0], eax
+    or eax, PRESENT_BIT | WRITE_BIT
+    mov dword[(page_table_l3_hh - KERNEL_VOFFSET) + 510 * 8], eax
 
-    ; loop
-    mov ecx, 0 ; ecx is the counter
-.map_l2_table: ; maps the l2 table to point to valid pages
-    mov eax, 0x200000  ; 2 MiB, eax is used for multiplication
-    mul ecx ; muliplies ecx by eax and stores the result in eax
-    or eax, 0b10000011 ; the first bit indicates that this page is very large (huge page bit)
-    mov [(page_table_l2 - KERNEL_VOFFSET) + ecx * 8], eax ; write the page into the table
+    ; Now let's prepare a loop...
+    mov ecx, 0  ; Loop counter
 
-    inc ecx
-    cmp ecx, 512 ; loop 512 times
-    jne .map_l2_table
-    
+    .map_page_table_l2:
+        mov eax, PAGE_SIZE  ; Size of the page
+        mul ecx             ; Multiply by counter
+        or eax, PAGE_TABLE_ENTRY ; We set: huge page bit, writable and present 
 
-    ; enable paging
-    mov eax, page_table_l4 - KERNEL_VOFFSET ; cannot directly move to cr3
-    mov cr3, eax ; move the page table to cr3 (control register)
+        ; Moving the computed value into page_table_l2 entry defined by ecx * 8
+        ; ecx is the counter, 8 is the size of a single entry
+        mov [(page_table_l2 - KERNEL_VOFFSET) + ecx * 8], eax
 
-    ; enable PAE
-    mov eax, cr4 ; modify the contents of cr4
-    or eax, 1 << 5 ; set the 5th bit
+        inc ecx             ; Let's increase ecx
+        cmp ecx, LOOP_LIMIT        ; have we reached 512 ? (1024 for small pages)
+                            ; When small pages is enabled:
+                            ; each table is 4k size. Each entry is 8bytes
+                            ; that is 512 entries in a table
+                            ; when small pages enabled: two tables are adjacent in memory
+                            ; they are mapped in the pdir during the map_pd_table cycle
+                            ; this is why the loop is up to 1024
+        
+        jne .map_page_table_l2   ; if ecx < 512 then loop
+
+
+    ; All set... now we are nearly ready to enter into 64 bit
+    ; Is possible to move into cr3 only from another register
+    ; So let's move page_table_l4 address into eax first
+    ; then into cr3
+    mov eax, (page_table_l4 - KERNEL_VOFFSET)
+    mov cr3, eax
+
+    ; Now we can enable PAE
+    ; To do it we need to modify cr4, so first let's copy it into eax
+    ; we can't modify cr registers directly
+    mov eax, cr4
+    or eax, 1 << 5  ; Physical address extension bit
     mov cr4, eax
-
-    ; set the long mode bit
+    
+    ; Now set up the long mode bit
     mov ecx, 0xC0000080
-    rdmsr ; accesses machine specific registers
+    ; rdmsr is to read a a model specific register (msr)
+    ; it copy the values of msr into eax
+    rdmsr
     or eax, 1 << 8
+    ; write back the value
     wrmsr
+    
+    ; Now is tiem to enable paging
+    mov eax, cr0    ;cr0 contains the values we want to change
+    or eax, 1 << 31 ; Paging bit
+    or eax, 1 << 16 ; Write protect, cpu  can't write to read-only pages when
+                    ; privilege level is 0
+    mov cr0, eax    ; write back cr0
+    ; load gdt 
+    lgdt [gdt64.pointer_low - KERNEL_VOFFSET]
+    jmp (0x8):(kernel_jumper - KERNEL_VOFFSET)
+    bits 64
 
-    ; enable paging
-    mov eax, cr0
-    or eax, 1 << 31
-    or eax, 1 << 16
-    mov cr0, eax
+section .text
+kernel_jumper:
+    bits 64    
 
-    ; grub starts protected mode which means it also loads its own gdt, however, grub's gdt should not be used
-    lgdt [gdt64.pointer_low - KERNEL_VOFFSET] ; load the gdt
+    ; update segment selectors
+    mov ax, 0x10
+    mov ss, ax  ; Stack segment selector
+    mov ds, ax  ; data segment register
+    mov es, ax  ; extra segment register
+    mov fs, ax  ; extra segment register
+    mov gs, ax  ; extra segment register
+    
+    lea rax, [rdi+8]
+    
+    ;.bss section should be already 0  at least on unix and windows systems
+    ;no need to initialize
 
-    jmp (gdt64.code):(long_mode_start - KERNEL_VOFFSET) ; far jump
+    mov rax, higher_half
+    jmp rax
 
-    hlt
+higher_half:
+    ; Far jump to long mode
+    mov rsp, stack_top
+    lgdt [gdt64.pointer]
+
+    ; The two lines below are needed to un map the kernel in the lower half
+    ; But i'll leave them commented for now because the code in the kernel need 
+    ; to be changed and some addresses need to be updated (i.e. multiboot stuff)
+    ;mov eax, 0x0
+    ;mov dword [(page_table_l4 - KERNEL_VOFFSET) + 0], eax
+    call kernel_main
 
 section .bss ; uninitialised data
 ; stack
@@ -69,6 +137,8 @@ align 4096 ; 4KiB
 page_table_l4:
     resb 4096
 page_table_l3:
+    resb 4096
+page_table_l3_hh:
     resb 4096
 page_table_l2:
     resb 4096
