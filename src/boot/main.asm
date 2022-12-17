@@ -2,16 +2,20 @@ global start
 global gdt64.data
 global multiboot_info
 global page_table_l2
+global gdt64.pointer
+global stack_top
 
 extern long_mode_start
 
-section .text ; program
+%define VOFFSET 0xFFFFFFFF80000000
+
+section .multiboot.text ; program
 bits 32
 start:
     cli
     ; entry
 
-    mov esp, stack_top ; setup stack pointer  
+    mov esp, stack_top - VOFFSET ; setup stack pointer  
 
     call save_multiboot_info 
     call check_multiboot
@@ -22,15 +26,15 @@ start:
     call enable_paging
 
     ; grub starts protected mode which means it also loads its own gdt, however, grub's gdt should not be used
-    lgdt [gdt64.pointer] ; load the gdt
-
-    jmp gdt64.code:long_mode_start ; far jump
+    lgdt [gdt64.pointer_low - VOFFSET] ; load the gdt
+    
+    jmp gdt64.code:(long_mode_start - VOFFSET) ; far jump
 err:
     hlt
 
 check_multiboot:
     cmp eax, 0x36d76289
-    jne err
+    jne (err - VOFFSET)
     ret
 
 check_cpuid:
@@ -45,34 +49,46 @@ check_cpuid:
     push ecx
     popfd
     cmp eax, ecx
-    je err
+    je (err - VOFFSET)
     ret
 
 check_long_mode:
     mov eax, 0x80000000
     cpuid
     cmp eax, 0x80000001
-    jb err
+    jb (err - VOFFSET)
 
     mov eax, 0x80000001
     cpuid
     test edx, 1 << 29
-    jz err
+    jz (err - VOFFSET)
 
     ret
 
 save_multiboot_info:
-    mov dword [multiboot_info], ebx
+    mov dword [multiboot_info - VOFFSET], ebx
     ret
 
 setup_tables:
-    mov eax, page_table_l3 ; get physical address
+    mov eax, page_table_l3_low - VOFFSET ; get physical address
     or eax, 0b11 ; present bit and writable bit
-    mov dword [page_table_l4  + 0], eax ; make page_table_l4 point to page_table_l3
+    mov dword [(page_table_l4 - VOFFSET) + 0], eax ; make page_table_l4 point to page_table_l3
 
-    mov eax, page_table_l2
+    mov eax, page_table_l3_high - VOFFSET ; mapping of the higher half
+    or eax, 0b11 
+    mov dword [(page_table_l4 - VOFFSET) + 511 * 8], eax 
+
+    mov eax, page_table_l4 - VOFFSET ; map page table 4 to itself
+    or eax, 0b11 
+    mov dword [(page_table_l4 - VOFFSET) + 510 * 8], eax 
+
+    mov eax, page_table_l2 - VOFFSET
     or eax, 0b11
-    mov dword [page_table_l3 + 0], eax
+    mov dword [(page_table_l3_low - VOFFSET) + 0], eax
+
+    mov eax, page_table_l2 - VOFFSET
+    or eax, 0b11
+    mov dword [(page_table_l3_high - VOFFSET) + 510 * 8], eax
 
     ; loop
     mov ecx, 0 ; ecx is the counter
@@ -80,7 +96,7 @@ setup_tables:
     mov eax, 0x200000  ; 2 MiB, eax is used for multiplication
     mul ecx ; muliplies ecx by eax and stores the result in eax
     or eax, 0b10000011 ; the first bit indicates that this page is very large (huge page bit)
-    mov dword [page_table_l2 + ecx * 8], eax ; write the page into the table
+    mov dword [(page_table_l2 - VOFFSET) + ecx * 8], eax ; write the page into the table
 
     inc ecx
     cmp ecx, 512 ; loop 512 times
@@ -89,7 +105,7 @@ setup_tables:
     ret
 
 enable_paging:
-    mov eax, page_table_l4 ; cannot directly move to cr3
+    mov eax, page_table_l4 - VOFFSET ; cannot directly move to cr3
     mov cr3, eax ; move the page table to cr3 (control register)
     
     ; enable PAE
@@ -116,7 +132,9 @@ section .bss ; uninitialised data
 align 4096 ; 4KiB
 page_table_l4:
     resb 4096
-page_table_l3:
+page_table_l3_low:
+    resb 4096
+page_table_l3_high:
     resb 4096
 page_table_l2:
     resb 4096
@@ -147,3 +165,6 @@ gdt64:
 .pointer:
     dw .pointer - gdt64 - 1 ; length (2 bytes)
     dq gdt64 ; the address of the table
+.pointer_low:
+    dw .pointer - gdt64 - 1 ; length (2 bytes)
+    dq gdt64 - VOFFSET ; the address of the table
