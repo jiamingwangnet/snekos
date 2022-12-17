@@ -1,19 +1,18 @@
 #include "../multiboot_init.h"
+#include "../memory.h"
 
-extern uint32_t multiboot_info;
-extern uint32_t page_table_l2;
+extern uint64_t multiboot_info;
+extern uint64_t page_table_l2;
 
-void map_framebuffer(uint32_t framebuffer, uint32_t screen_size)
+void map_framebuffer(uint64_t framebuffer, uint64_t screen_size)
 {
-    framebuffer |= 0b10000011;
-    for(uint32_t i = 0; i * 0x200000 < screen_size; i++)
+    for(uint64_t i = 0; i * 0x200000 < screen_size; i++)
     {
-        *(uint32_t*)((uint32_t)&page_table_l2 + 8 * (488 + i)) = framebuffer + i * 0x200000;
+        map_address(framebuffer + i * 0x200000, 488 + i);
     }
-    __asm__("invlpg [0]");
 }
 
-uint32_t get_info_addr() 
+uint64_t get_info_addr() 
 {
     if (multiboot_info & 7)
     {
@@ -25,7 +24,7 @@ uint32_t get_info_addr()
 
 framebuffer_tag* get_framebuffer_tag()
 {
-    uint32_t addr = get_info_addr();
+    uint64_t addr = get_info_addr();
     for(LOOP_TAGS(tag, addr))
     {
         if(tag->type == MULTIBOOT_TAG_TYPE_FRAMEBUFFER)
@@ -39,7 +38,7 @@ framebuffer_tag* get_framebuffer_tag()
 void init_framebuffer()
 {
     tagfb = get_framebuffer_tag();
-    uint32_t addr = get_info_addr();
+    uint64_t addr = get_info_addr();
 
     if(tagfb != 0)
     {

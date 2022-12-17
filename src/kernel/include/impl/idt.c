@@ -3,6 +3,7 @@
 #include "../stdlib.h"
 #include "../io.h"
 #include "../graphics.h"
+#include "../memory.h"
 
 extern void load_idt(struct IDTPtr* pointer);
 
@@ -84,7 +85,7 @@ void init_idt()
     add_idt_entry(45, (uint64_t)&irq13, 0x08,  0x8E,  0);
     add_idt_entry(46, (uint64_t)&irq14, 0x08,  0x8E,  0);
     add_idt_entry(47, (uint64_t)&irq15, 0x08,  0x8E,  0);
-
+    
     for(uint8_t i = 0; i < 16; i++)
         pic_mask_irq(i);
 
@@ -92,13 +93,13 @@ void init_idt()
 
     for(uint8_t i = 0; i < 16; i++)
         pic_unmask_irq(i);
-
-    __asm__ ("sti"); // enable irq or something idk
-
+    
     pointer.size = (uint16_t)sizeof(entries) - 1;
     pointer.base = (uintptr_t) &entries[0];
 
-    load_idt(&pointer);
+    load_idt(virt_to_phys((uint64_t)&pointer));
+
+    __asm__ ("sti"); // enable irq or something idk;
 }
 
 void init_pic(uint8_t offset1, uint8_t offset2)
