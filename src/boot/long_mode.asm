@@ -2,10 +2,10 @@ global long_mode_start
 
 extern kernel_main
 extern gdt64.data
-extern stack_top
 extern gdt64.pointer
+extern stack_top
 
-section .text
+section .text 
 bits 64
 long_mode_start:
     ; update selectors
@@ -15,7 +15,7 @@ long_mode_start:
     mov es, ax
     mov fs, ax
     mov gs, ax
-
+    
     mov rax, higher_half
     jmp rax
 
