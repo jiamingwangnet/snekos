@@ -3,7 +3,6 @@ ENTRY(start)
 SECTIONS
 {
     . = 1M; /* start 1 megabyte in */
-    kernel_voffset = 0xFFFFFFFF80000000;
 
     _kernel_start = .;
     _kernel_voffset = 0xffffffff80000000;
@@ -37,6 +36,5 @@ SECTIONS
     {
         *(.bss)
     }
-    _kernel_end = .;
     _kernel_end = .;
 }
