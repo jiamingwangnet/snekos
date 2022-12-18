@@ -3,6 +3,7 @@
 #include "../stdlib.h"
 #include "../io.h"
 #include "../graphics.h"
+#include "../font.h"
 #include "../memory.h"
 
 extern void load_idt(struct IDTPtr* pointer);
@@ -23,6 +24,9 @@ void add_idt_entry(uint8_t index, uint64_t offset, uint16_t sel, uint8_t attr, u
     entries[index].selector = sel;
     entries[index].type_attributes = attr;
 }
+
+#define ERR_FG (Color){0xe0,0xe0,0xe0}
+#define ERR_BG (Color){0xff,0,0}
 
 void isr_handler(reg_status_t status)
 {
@@ -55,6 +59,43 @@ void isr_handler(reg_status_t status)
     char c_ss[15];
     itoa(status.ss, c_ss, 16);
 
+    draw_rect(0, 0, SCRN_WIDTH, SCRN_HEIGHT, ERR_BG, tagfb);
+    
+    draw_str(20, 20, ERR_FG, ERR_BG, "Interrupt Hit!", tagfb);
+
+    draw_str(20, 37, ERR_FG, ERR_BG, "ID: ", tagfb);
+    draw_str(20 + PSF1_WIDTH + 17 * 11, 37, ERR_FG, ERR_BG, c_id, tagfb);
+
+    draw_str(20, 54, ERR_FG, ERR_BG, "Error Code: ", tagfb);
+    draw_str(20 + PSF1_WIDTH + 17 * 11, 54, ERR_FG, ERR_BG, c_code, tagfb);
+
+    draw_str(20, 88, ERR_FG, ERR_BG, "Register Info: ", tagfb);
+
+    draw_str(20, 105, ERR_FG, ERR_BG, "RAX:                0x", tagfb);
+    draw_str(20 + PSF1_WIDTH + 17 * 11 + 4, 105, ERR_FG, ERR_BG, c_rax, tagfb);
+
+    draw_str(20, 122, ERR_FG, ERR_BG, "RBX:                0x", tagfb);
+    draw_str(20 + PSF1_WIDTH + 17 * 11 + 4, 122, ERR_FG, ERR_BG, c_rbx, tagfb);
+
+    draw_str(20, 139, ERR_FG, ERR_BG, "RCX:                0x", tagfb);
+    draw_str(20 + PSF1_WIDTH + 17 * 11 + 4, 139, ERR_FG, ERR_BG, c_rcx, tagfb);
+
+    draw_str(20, 156, ERR_FG, ERR_BG, "RDX:                0x", tagfb);
+    draw_str(20 + PSF1_WIDTH + 17 * 11 + 4, 156, ERR_FG, ERR_BG, c_rdx, tagfb);
+
+    draw_str(20, 173, ERR_FG, ERR_BG, "RSI:                0x", tagfb);
+    draw_str(20 + PSF1_WIDTH + 17 * 11 + 4, 173, ERR_FG, ERR_BG, c_rsi, tagfb);
+
+    draw_str(20, 190, ERR_FG, ERR_BG, "RDI:                0x", tagfb);
+    draw_str(20 + PSF1_WIDTH + 17 * 11 + 4, 190, ERR_FG, ERR_BG, c_rdi, tagfb);
+
+    draw_str(20, 207, ERR_FG, ERR_BG, "CS :                0x", tagfb);
+    draw_str(20 + PSF1_WIDTH + 17 * 11 + 4, 207, ERR_FG, ERR_BG, c_cs, tagfb);
+
+    draw_str(20, 224, ERR_FG, ERR_BG, "SS :                0x", tagfb);
+    draw_str(20 + PSF1_WIDTH + 17 * 11 + 4, 224, ERR_FG, ERR_BG, c_ss, tagfb);
+
+#ifdef DEBUG_LOG
     serial_str("\n\ninterrupt hit!! ID: ");
     serial_str(c_id);
     serial_str(" error code: ");
@@ -94,7 +135,7 @@ void isr_handler(reg_status_t status)
     serial_str("SS : ");
     serial_str(c_ss);
     serial_char('\n');
-    
+#endif
     __asm__ volatile("cli\nhlt");
 }
 
