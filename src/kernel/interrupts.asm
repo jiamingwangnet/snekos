@@ -5,27 +5,88 @@ bits 64
 section .text
 align 4
 
+%macro save_registers 0
+    push rax
+    push rbx
+    push rcx
+    push rdx
+    push rbp
+    push rsi
+    push rdi
+    push r8
+    push r9
+    push r10
+    push r11
+    push r12
+    push r13
+    push r14
+    push r15
+%endmacro
+
+%macro restore_registers 0
+    pop r15
+    pop r14
+    pop r13
+    pop r12
+    pop r11
+    pop r10
+    pop r9
+    pop r8
+    pop rdi
+    pop rsi
+    pop rbp
+    pop rdx
+    pop rcx
+    pop rbx
+    pop rax
+%endmacro
+
 %macro ISR_NOERRCODE 1
   global isr%1
   isr%1:
-    mov edi, %1
+    push 0 ; error code default to 0
+    push %1 ; interrupt number
+    save_registers
+    mov rdi, rsp ; rdi and edi same thing. pass number as param
+    cld ; clear direction flag
+
     call isr_handler
+
+    restore_registers
+
+    add rsp, 16 ; discard error code and interrupt num
     iretq
 %endmacro
 
 %macro ISR_ERRCODE 1
   global isr%1
   isr%1:
-    mov edi, %1
+    ; stack already contains interrupt number
+    push %1 ; interrupt number
+    save_registers
+    mov rdi, rsp ; rdi and edi same thing. pass number as param
+    cld ; clear direction flag
+
     call isr_handler
+
+    restore_registers
+    add rsp, 16 ; discard error code and interrupt num
     iretq
 %endmacro
 
 %macro IRQ 2
   global irq%1
   irq%1:
-    mov edi, %2
+    push 0
+    push %2
+    save_registers
+    mov rdi, rsp
+    cld 
+
     call irq_handler
+
+    restore_registers
+    add rsp, 16
     iretq
 %endmacro
 

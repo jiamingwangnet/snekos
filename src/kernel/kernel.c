@@ -96,13 +96,7 @@ void kernel_main()
             serial_char('\n');
     #endif
 
-    for(uint32_t y = 0; y < SCRN_HEIGHT; y++)
-    {
-        for(uint32_t x = 0; x < SCRN_WIDTH; x++)
-        {
-            put_pixel(x, y, (Color){255,255,255}, tagfb);
-        }
-    }
+    draw_rect(0,0,SCRN_WIDTH,SCRN_HEIGHT,(Color){0xff,0xff,0xff},tagfb);
 
     // draw smile
 
@@ -129,6 +123,7 @@ void kernel_main()
                      tagfb);
 
     wait_ticks(1500);
+    
     init_keyboard(shell_keyboard);
     draw_rect(0, 0, SCRN_WIDTH, SCRN_HEIGHT, (Color){0xf,0xf,0xf}, tagfb);
 

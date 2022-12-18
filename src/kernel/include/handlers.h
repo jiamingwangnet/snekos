@@ -22,5 +22,5 @@
 
 typedef void (*handler_t)(void);
 
-void irq_handler(uint8_t id);
+void irq_handler(reg_status_t status);
 void add_handler(uint8_t index, handler_t hdlr);

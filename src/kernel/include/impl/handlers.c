@@ -5,7 +5,7 @@
 
 handler_t handlers[256] = {};
 // #define DEBUG_LOG_IRQ
-void irq_handler(uint8_t id)
+void irq_handler(reg_status_t status)
 {
     #ifdef DEBUG_LOG_IRQ
     serial_str("\n\nIrq Handled ");
@@ -15,10 +15,10 @@ void irq_handler(uint8_t id)
     serial_char('\n');
     #endif
 
-    handler_t handler = handlers[id];
+    handler_t handler = handlers[status.interrupt_number];
     if(handler) handler();
 
-    if(id >= 40) // IRQ 8
+    if(status.interrupt_number >= 40) // IRQ 8
         out(PIC2_COMMAND, PIC_EOI);
 
     out(PIC1_COMMAND, PIC_EOI);

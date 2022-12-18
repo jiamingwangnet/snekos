@@ -24,13 +24,77 @@ void add_idt_entry(uint8_t index, uint64_t offset, uint16_t sel, uint8_t attr, u
     entries[index].type_attributes = attr;
 }
 
-void isr_handler(uint8_t id)
+void isr_handler(reg_status_t status)
 {
-    serial_str("\n\ninterrupt hit!! ID: ");
     char c_id[15];
-    itoa(id, c_id, 10);
+    itoa(status.interrupt_number, c_id, 10);
+    char c_code[15];
+    itoa(status.error_code, c_code, 10);
+
+    char c_rax[15];
+    itoa(status.rax, c_rax, 16);
+
+    char c_rbx[15];
+    itoa(status.rbx, c_rbx, 16);
+    
+    char c_rcx[15];
+    itoa(status.rcx, c_rcx, 16);
+
+    char c_rdx[15];
+    itoa(status.rdx, c_rdx, 16);
+
+    char c_rsi[15];
+    itoa(status.rsi, c_rsi, 16);
+
+    char c_rdi[15];
+    itoa(status.rdi, c_rdi, 16);
+
+    char c_cs[15];
+    itoa(status.cs, c_cs, 16);
+
+    char c_ss[15];
+    itoa(status.ss, c_ss, 16);
+
+    serial_str("\n\ninterrupt hit!! ID: ");
     serial_str(c_id);
+    serial_str(" error code: ");
+    serial_str(c_code);
     serial_char('\n');
+
+    serial_str("register info: \n");
+
+    serial_str("RAX: 0x");
+    serial_str(c_rax);
+    serial_char('\n');
+    
+    serial_str("RBX: 0x");
+    serial_str(c_rbx);
+    serial_char('\n');
+    
+    serial_str("RCX: 0x");
+    serial_str(c_rcx);
+    serial_char('\n');
+    
+    serial_str("RDX: 0x");
+    serial_str(c_rdx);
+    serial_char('\n');
+    
+    serial_str("RSI: 0x");
+    serial_str(c_rsi);
+    serial_char('\n');
+    
+    serial_str("RDI: 0x");
+    serial_str(c_rdi);
+    serial_char('\n');
+    
+    serial_str("CS : ");
+    serial_str(c_cs);
+    serial_char('\n');
+    
+    serial_str("SS : ");
+    serial_str(c_ss);
+    serial_char('\n');
+    
     __asm__ volatile("cli\nhlt");
 }
 
