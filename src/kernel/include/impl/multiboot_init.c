@@ -6,9 +6,9 @@ extern uint64_t page_table_l2;
 
 void map_framebuffer(uint64_t framebuffer, uint64_t screen_size)
 {
-    for(uint64_t i = 0; i * 0x200000 < screen_size; i++)
+    for(uint64_t i = 0; i < screen_size; i += 0x200000)
     {
-        map_address(framebuffer + i * 0x200000, 488 + i);
+        map_address(framebuffer + i, FRAMEBUFFER + i);
     }
 }
 
