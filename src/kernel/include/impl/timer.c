@@ -15,7 +15,7 @@ void init_timer()
     // The value we send to the PIT is the value to divide it's input clock
     // (1193180 Hz) by, to get our required frequency. Important to note is
     // that the divisor must be small enough to fit into 16-bits.
-    uint16_t divisor = (uint16_t) (1193180 / 1500);
+    uint16_t divisor = (uint16_t) (1193180 / 1000);
 
     // Send the command byte.
     out(I86_PIT_REG_COMMAND, 0x36);
