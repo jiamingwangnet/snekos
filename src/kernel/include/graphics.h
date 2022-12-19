@@ -1,5 +1,6 @@
 #pragma once
 #include "types.h"
+#include "font.h"
 
 #define FRAMEBUFFER 0x3D000000
 
