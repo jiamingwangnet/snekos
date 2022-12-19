@@ -64,6 +64,7 @@ void handle_key()
 
     Key_Info info = {
         .key = key,
+        .raw = c,
         .release = release, // skip the function keys and assume they're release keys
         .modifier = modifier,
     };

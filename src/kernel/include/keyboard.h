@@ -19,6 +19,7 @@
 typedef struct
 {
     char key;
+    uint8_t raw;
     bool modifier;
     bool release;
 } Key_Info;
