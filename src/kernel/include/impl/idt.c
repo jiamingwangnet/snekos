@@ -202,7 +202,7 @@ void init_idt()
     pointer.size = (uint16_t)sizeof(entries) - 1;
     pointer.base = (uintptr_t) &entries[0];
 
-    load_idt(virt_to_phys((uint64_t)&pointer));
+    load_idt((struct IDTPtr*)virt_to_phys((uint64_t)&pointer));
 
     __asm__ ("sti"); // enable irq or something idk;
 }
