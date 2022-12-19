@@ -2,13 +2,12 @@
 #include "../memory.h"
 
 extern uint64_t multiboot_info;
-extern uint64_t page_table_l2;
 
 void map_framebuffer(uint64_t framebuffer, uint64_t screen_size)
 {
     for(uint64_t i = 0; i < screen_size; i += 0x200000)
     {
-        map_address(framebuffer + i, FRAMEBUFFER + i);
+        map_address((void*)(framebuffer + i), (void*)(FRAMEBUFFER + i));
     }
 }
 
@@ -38,7 +37,6 @@ framebuffer_tag* get_framebuffer_tag()
 void init_framebuffer()
 {
     tagfb = get_framebuffer_tag();
-    uint64_t addr = get_info_addr();
 
     if(tagfb != 0)
     {

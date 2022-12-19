@@ -12,11 +12,11 @@ __attribute__((aligned(0x10)))
 struct IDTEntry entries[256] = {};
 struct IDTPtr pointer;
 
-void add_idt_entry(uint8_t index, uint64_t offset, uint16_t sel, uint8_t attr, uint8_t ist)
+void add_idt_entry(uint8_t index, void* offset, uint16_t sel, uint8_t attr, uint8_t ist)
 {
-    entries[index].offset_1 = (uint16_t) (offset & 0xffff);
-    entries[index].offset_2 = (uint16_t) (offset >> 16 & 0xffff);
-    entries[index].offset_3 = (uint32_t) (offset >> 32 & 0xffffffff);
+    entries[index].offset_2 = (uint16_t) ((uint64_t)offset >> 16 & 0xffff);
+    entries[index].offset_3 = (uint32_t) ((uint64_t)offset >> 32 & 0xffffffff);
+    entries[index].offset_1 = (uint16_t) ((uint64_t)offset & 0xffff);
 
     entries[index].zero = (uint32_t)0;
     entries[index].ist = ist;
@@ -141,55 +141,55 @@ void isr_handler(reg_status_t status)
 
 void init_idt()
 {
-    add_idt_entry(0, (uint64_t)&isr0, 0x8, 0x8e,  0);
-    add_idt_entry(1, (uint64_t)&isr1, 0x8, 0x8e,  0);
-    add_idt_entry(2, (uint64_t)&isr2, 0x8, 0x8e,  0);
-    add_idt_entry(3, (uint64_t)&isr3, 0x8, 0x8e,  0);
-    add_idt_entry(4, (uint64_t)&isr4, 0x8, 0x8e,  0);
-    add_idt_entry(5, (uint64_t)&isr5, 0x8, 0x8e,  0);
-    add_idt_entry(6, (uint64_t)&isr6, 0x8, 0x8e,  0);
-    add_idt_entry(7, (uint64_t)&isr7, 0x8, 0x8e,  0);
-    add_idt_entry(8, (uint64_t)&isr8, 0x8, 0x8e,  0);
-    add_idt_entry(9, (uint64_t)&isr9, 0x8, 0x8e,  0);
-    add_idt_entry(10,(uint64_t)&isr10, 0x8, 0x8e, 0);
-    add_idt_entry(11,(uint64_t)&isr11, 0x8, 0x8e, 0);
-    add_idt_entry(12,(uint64_t)&isr12, 0x8, 0x8e, 0);
-    add_idt_entry(13,(uint64_t)&isr13, 0x8, 0x8e, 0);
-    add_idt_entry(14,(uint64_t)&isr14, 0x8, 0x8e, 0);
-    add_idt_entry(15,(uint64_t)&isr15, 0x8, 0x8e, 0);
-    add_idt_entry(16,(uint64_t)&isr16, 0x8, 0x8e, 0);
-    add_idt_entry(17,(uint64_t)&isr17, 0x8, 0x8e, 0);
-    add_idt_entry(18,(uint64_t)&isr18, 0x8, 0x8e, 0);
-    add_idt_entry(19,(uint64_t)&isr19, 0x8, 0x8e, 0);
-    add_idt_entry(20,(uint64_t)&isr20, 0x8, 0x8e, 0);
-    add_idt_entry(21,(uint64_t)&isr21, 0x8, 0x8e, 0);
-    add_idt_entry(22,(uint64_t)&isr22, 0x8, 0x8e, 0);
-    add_idt_entry(23,(uint64_t)&isr23, 0x8, 0x8e, 0);
-    add_idt_entry(24,(uint64_t)&isr24, 0x8, 0x8e, 0);
-    add_idt_entry(25,(uint64_t)&isr25, 0x8, 0x8e, 0);
-    add_idt_entry(26,(uint64_t)&isr26, 0x8, 0x8e, 0);
-    add_idt_entry(27,(uint64_t)&isr27, 0x8, 0x8e, 0);
-    add_idt_entry(28,(uint64_t)&isr28, 0x8, 0x8e, 0);
-    add_idt_entry(29,(uint64_t)&isr29, 0x8, 0x8e, 0);
-    add_idt_entry(30,(uint64_t)&isr30, 0x8, 0x8e, 0);
-    add_idt_entry(31,(uint64_t)&isr31, 0x8, 0x8e, 0);
+    add_idt_entry(0,  &isr0, 0x8, 0x8e,  0);
+    add_idt_entry(1,  &isr1, 0x8, 0x8e,  0);
+    add_idt_entry(2,  &isr2, 0x8, 0x8e,  0);
+    add_idt_entry(3,  &isr3, 0x8, 0x8e,  0);
+    add_idt_entry(4,  &isr4, 0x8, 0x8e,  0);
+    add_idt_entry(5,  &isr5, 0x8, 0x8e,  0);
+    add_idt_entry(6,  &isr6, 0x8, 0x8e,  0);
+    add_idt_entry(7,  &isr7, 0x8, 0x8e,  0);
+    add_idt_entry(8,  &isr8, 0x8, 0x8e,  0);
+    add_idt_entry(9,  &isr9, 0x8, 0x8e,  0);
+    add_idt_entry(10, &isr10, 0x8, 0x8e, 0);
+    add_idt_entry(11, &isr11, 0x8, 0x8e, 0);
+    add_idt_entry(12, &isr12, 0x8, 0x8e, 0);
+    add_idt_entry(13, &isr13, 0x8, 0x8e, 0);
+    add_idt_entry(14, &isr14, 0x8, 0x8e, 0);
+    add_idt_entry(15, &isr15, 0x8, 0x8e, 0);
+    add_idt_entry(16, &isr16, 0x8, 0x8e, 0);
+    add_idt_entry(17, &isr17, 0x8, 0x8e, 0);
+    add_idt_entry(18, &isr18, 0x8, 0x8e, 0);
+    add_idt_entry(19, &isr19, 0x8, 0x8e, 0);
+    add_idt_entry(20, &isr20, 0x8, 0x8e, 0);
+    add_idt_entry(21, &isr21, 0x8, 0x8e, 0);
+    add_idt_entry(22, &isr22, 0x8, 0x8e, 0);
+    add_idt_entry(23, &isr23, 0x8, 0x8e, 0);
+    add_idt_entry(24, &isr24, 0x8, 0x8e, 0);
+    add_idt_entry(25, &isr25, 0x8, 0x8e, 0);
+    add_idt_entry(26, &isr26, 0x8, 0x8e, 0);
+    add_idt_entry(27, &isr27, 0x8, 0x8e, 0);
+    add_idt_entry(28, &isr28, 0x8, 0x8e, 0);
+    add_idt_entry(29, &isr29, 0x8, 0x8e, 0);
+    add_idt_entry(30, &isr30, 0x8, 0x8e, 0);
+    add_idt_entry(31, &isr31, 0x8, 0x8e, 0);
 
-    add_idt_entry(32, (uint64_t)&irq0,  0x08,  0x8E,  0);
-    add_idt_entry(33, (uint64_t)&irq1,  0x08,  0x8E,  0);
-    add_idt_entry(34, (uint64_t)&irq2,  0x08,  0x8E,  0);
-    add_idt_entry(35, (uint64_t)&irq3,  0x08,  0x8E,  0);
-    add_idt_entry(36, (uint64_t)&irq4,  0x08,  0x8E,  0);
-    add_idt_entry(37, (uint64_t)&irq5,  0x08,  0x8E,  0);
-    add_idt_entry(38, (uint64_t)&irq6,  0x08,  0x8E,  0);
-    add_idt_entry(39, (uint64_t)&irq7,  0x08,  0x8E,  0);
-    add_idt_entry(40, (uint64_t)&irq8,  0x08,  0x8E,  0);
-    add_idt_entry(41, (uint64_t)&irq9,  0x08,  0x8E,  0);
-    add_idt_entry(42, (uint64_t)&irq10, 0x08,  0x8E,  0);
-    add_idt_entry(43, (uint64_t)&irq11, 0x08,  0x8E,  0);
-    add_idt_entry(44, (uint64_t)&irq12, 0x08,  0x8E,  0);
-    add_idt_entry(45, (uint64_t)&irq13, 0x08,  0x8E,  0);
-    add_idt_entry(46, (uint64_t)&irq14, 0x08,  0x8E,  0);
-    add_idt_entry(47, (uint64_t)&irq15, 0x08,  0x8E,  0);
+    add_idt_entry(32, &irq0,  0x08,  0x8E,  0);
+    add_idt_entry(33, &irq1,  0x08,  0x8E,  0);
+    add_idt_entry(34, &irq2,  0x08,  0x8E,  0);
+    add_idt_entry(35, &irq3,  0x08,  0x8E,  0);
+    add_idt_entry(36, &irq4,  0x08,  0x8E,  0);
+    add_idt_entry(37, &irq5,  0x08,  0x8E,  0);
+    add_idt_entry(38, &irq6,  0x08,  0x8E,  0);
+    add_idt_entry(39, &irq7,  0x08,  0x8E,  0);
+    add_idt_entry(40, &irq8,  0x08,  0x8E,  0);
+    add_idt_entry(41, &irq9,  0x08,  0x8E,  0);
+    add_idt_entry(42, &irq10, 0x08,  0x8E,  0);
+    add_idt_entry(43, &irq11, 0x08,  0x8E,  0);
+    add_idt_entry(44, &irq12, 0x08,  0x8E,  0);
+    add_idt_entry(45, &irq13, 0x08,  0x8E,  0);
+    add_idt_entry(46, &irq14, 0x08,  0x8E,  0);
+    add_idt_entry(47, &irq15, 0x08,  0x8E,  0);
     
     for(uint8_t i = 0; i < 16; i++)
         pic_mask_irq(i);
@@ -202,7 +202,7 @@ void init_idt()
     pointer.size = (uint16_t)sizeof(entries) - 1;
     pointer.base = (uintptr_t) &entries[0];
 
-    load_idt((struct IDTPtr*)virt_to_phys((uint64_t)&pointer));
+    load_idt((struct IDTPtr*)virt_to_phys(&pointer));
 
     __asm__ ("sti"); // enable irq or something idk;
 }

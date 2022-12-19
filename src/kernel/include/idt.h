@@ -67,7 +67,7 @@ typedef struct
     uint64_t ss;
 } __attribute__((packed)) reg_status_t;
 
-void add_idt_entry(uint8_t index, uint64_t offset, uint16_t sel, uint8_t attr, uint8_t ist);
+void add_idt_entry(uint8_t index, void* offset, uint16_t sel, uint8_t attr, uint8_t ist);
 void init_idt();
 void isr_handler(reg_status_t status);
 
