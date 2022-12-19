@@ -1,6 +1,7 @@
 #pragma once
 
 #include <stdbool.h>
+#include "types.h"
 
 #define KEY_MAX 0x3A // skipping the Function keys
 
