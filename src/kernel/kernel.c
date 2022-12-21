@@ -124,13 +124,15 @@ void kernel_main()
 
     wait_ticks(1500);
     
-    init_keyboard(shell_keyboard);
+    init_keyboard(console_keyboard);
     draw_rect(0, 0, SCRN_WIDTH, SCRN_HEIGHT, (Color){0xf,0xf,0xf}, tagfb);
+
+    printcmd();
 
     bool right = true;
     for(int x = 0;;)
     {
-        draw_cursor();
+        console_loop();
 
         // clear path
         draw_rect(0,0,SCRN_WIDTH, 10, (Color){0x30,0x30,0x30}, tagfb);
