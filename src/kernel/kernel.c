@@ -11,13 +11,13 @@
 
 void kernel_main()
 {
-    init_framebuffer();
+    init_multiboot();
 
     init_serial();
     init_idt();
     init_font();
 
-    init_console(20, 20, (Color){235, 255, 224}, (Color){0xf,0xf,0xf}, tagfb);
+    init_console(20, 20, 0xe0ffeb, 0x0f0f0f);
     init_timer();
 
     #ifdef DEBUG_LOG
@@ -96,56 +96,58 @@ void kernel_main()
             serial_char('\n');
     #endif
 
-    draw_rect(0,0,SCRN_WIDTH,SCRN_HEIGHT,(Color){0xff,0xff,0xff},tagfb);
+    draw_rect(0,0,SCRN_WIDTH,SCRN_HEIGHT,0xffffff);
 
     // draw smile
 
     // mouth
-    draw_rect(SCRN_WIDTH/2 - 250, SCRN_HEIGHT/2 + 110, 500, 50, (Color){0,0,0}, tagfb);
-    draw_rect(SCRN_WIDTH/2 - 250, SCRN_HEIGHT/2 + 10, 50, 100, (Color){0,0,0}, tagfb);
-    draw_rect(SCRN_WIDTH/2 + 200, SCRN_HEIGHT/2 + 10, 50, 100, (Color){0,0,0}, tagfb);
+    draw_rect(SCRN_WIDTH/2 - 250, SCRN_HEIGHT/2 + 110, 500, 50, 0);
+    draw_rect(SCRN_WIDTH/2 - 250, SCRN_HEIGHT/2 + 10, 50, 100, 0);
+    draw_rect(SCRN_WIDTH/2 + 200, SCRN_HEIGHT/2 + 10, 50, 100, 0);
 
     // eyes
-    draw_rect(SCRN_WIDTH/2 - 130, 200, 60, 120, (Color){0,0,0}, tagfb);
-    draw_rect(SCRN_WIDTH/2 + 70, 200, 60, 120, (Color){0,0,0}, tagfb);
+    draw_rect(SCRN_WIDTH/2 - 130, 200, 60, 120,0);
+    draw_rect(SCRN_WIDTH/2 + 70, 200, 60, 120, 0);
 
     wait_ticks(3000);
 
-    draw_rect(0, 0, SCRN_WIDTH, SCRN_HEIGHT, (Color){0xf,0xf,0xf}, tagfb);
-    draw_str(20, 20, (Color){235, 255, 224}, (Color){0xf,0xf,0xf},
+    draw_rect(0, 0, SCRN_WIDTH, SCRN_HEIGHT, 0x0f0f0f);
+    draw_str(20, 20, 0xe0ffeb,0xf0f0f,
                     "Hello, World!\n"
                      "TEST CMD!!!\n"
                      "The Quick Brown Fox Jumps Over The Lazy Dog\n"
                      "the quick brown fox fox jumps over the lazy dog.\n"
                      "THE QUICK BROWN FOX JUMPS OVER THE LAZY DOG.\n"
                      "1234567890\n"
-                     "~!@#$%^&*()_+<>[]{}", 
-                     tagfb);
+                     "~!@#$%^&*()_+<>[]{}");
 
     wait_ticks(1500);
     
     init_keyboard(console_keyboard);
-    draw_rect(0, 0, SCRN_WIDTH, SCRN_HEIGHT, (Color){0xf,0xf,0xf}, tagfb);
+    draw_rect(0, 0, SCRN_WIDTH, SCRN_HEIGHT, 0x0f0f0f);
 
     printcmd();
 
     bool right = true;
-    for(int x = 0;;)
+    for(uint32_t x = 0;;)
     {
         console_loop();
 
-        // clear path
-        draw_rect(0,0,SCRN_WIDTH, 10, (Color){0x30,0x30,0x30}, tagfb);
+        if(get_time() % 1 == 0)
+        {
+            // clear path
+            draw_rect(0,0,SCRN_WIDTH, 10, 0x303030);
 
-        draw_rect(x, 0, 10, 10, (Color){122, 199, 40}, tagfb);
-        if(right)
-            x++;
-        else
-            x--;
+            draw_rect(x, 0, 10, 10, 0x28c77a);
+            if(right)
+                x++;
+            else
+                x--;
 
-        if(x + 10 >= SCRN_WIDTH)
-            right = false;
-        else if(x <= 0)
-            right = true;
+            if(x + 10 >= SCRN_WIDTH)
+                right = false;
+            else if(x <= 0)
+                right = true;
+        }
     }
 }

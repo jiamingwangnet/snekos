@@ -1,3 +1,5 @@
+CFLAGS = -mcmodel=large -mno-sse -mno-red-zone -fno-pic -masm=intel -m64 -ffreestanding -O3 -Wall -Wextra
+
 ASM_SOURCE_FILES := $(shell find src/ -name *.asm)
 ASM_OBJ_FILES := $(patsubst src/%.asm, build/%.o, $(ASM_SOURCE_FILES))
 
@@ -6,7 +8,7 @@ C_OBJ_FILES := $(patsubst src/%.c, build/%.o, $(C_SOURCE_FILES))
 
 $(C_OBJ_FILES): build/%.o : src/%.c
 	mkdir -p $(dir $@) && \
-	gcc -mcmodel=large -mno-sse -mno-red-zone -fno-pic -masm=intel -m64 -ffreestanding -c $(patsubst build/%.o, src/%.c, $@) -o $@
+	gcc $(CFLAGS) -c $(patsubst build/%.o, src/%.c, $@) -o $@ 
 
 $(ASM_OBJ_FILES): build/%.o : src/%.asm
 	mkdir -p $(dir $@) && \

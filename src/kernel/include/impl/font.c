@@ -29,7 +29,7 @@ void init_font()
 #endif
 }
 
-void draw_char(uint32_t x, uint32_t y, Color foreground, Color background, char c, framebuffer_tag* fb)
+void draw_char(uint32_t x, uint32_t y, uint32_t foreground, uint32_t background, char c)
 {
     if(font == NULL || c == '\n') return;
     uint32_t width = PSF1_WIDTH;
@@ -43,13 +43,13 @@ void draw_char(uint32_t x, uint32_t y, Color foreground, Color background, char 
         for(uint32_t dx = x; dx < width + x; dx++)
         {
             uint8_t mask = 0b10000000 >> (dx - x);
-            Color color = (row & mask) == 0 ? background : foreground;
-            put_pixel(dx, dy, color, fb);
+            uint32_t color = (row & mask) == 0 ? background : foreground;
+            put_pixel(dx, dy, color);
         }
     }
 }
 
-void draw_str(uint32_t x, uint32_t y, Color foreground, Color background, const char* str, framebuffer_tag* fb)
+void draw_str(uint32_t x, uint32_t y, uint32_t foreground, uint32_t background, const char* str)
 {
     if(font == NULL) return;
     uint32_t width = PSF1_WIDTH;
@@ -63,7 +63,7 @@ void draw_str(uint32_t x, uint32_t y, Color foreground, Color background, const 
             dx = x;
         }
 
-        draw_char(dx, line, foreground, background, *str, fb);
+        draw_char(dx, line, foreground, background, *str);
     }
 }
 

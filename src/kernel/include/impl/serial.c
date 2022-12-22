@@ -47,7 +47,7 @@ void serial_str(const char* str)
     }
 }
 
-uint8_t iserial_char(char c)
+uint8_t iserial_char()
 {
     while(serial_received() == 0);
 

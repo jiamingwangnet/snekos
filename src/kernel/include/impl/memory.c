@@ -2,19 +2,19 @@
 
 extern uint64_t page_table_l2;
 
-void* phys_to_virt(void* addr)
+inline void* phys_to_virt(void* addr)
 {
     if((uint64_t)addr > KERNEL_VOFFSET) return addr;
     return addr + KERNEL_VOFFSET;
 }
 
-void* virt_to_phys(void* addr)
+inline void* virt_to_phys(void* addr)
 {
     if((uint64_t)addr < KERNEL_VOFFSET) return addr;
     return addr - KERNEL_VOFFSET;
 }
 
-uint64_t* get_page_table()
+inline uint64_t* get_page_table()
 {
     return &page_table_l2;
 }

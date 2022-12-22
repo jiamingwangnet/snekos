@@ -1,9 +1,8 @@
 #include "../console.h"
 #include "../graphics.h"
 
-Color foreground = {255,255,255};
-Color background = {0,0,0};
-framebuffer_tag* framebuffer = NULL;
+uint32_t foreground = 0xffffff;
+uint32_t background = 0x000000;
 
 uint32_t x = 0;
 uint32_t y = 0;
@@ -23,11 +22,10 @@ void printcmd()
     input_mode = true;
 }
 
-void init_console(uint32_t sx, uint32_t sy, Color fg, Color bg, framebuffer_tag* fb)
+void init_console(uint32_t sx, uint32_t sy, uint32_t fg, uint32_t bg)
 {
     x = sx;
     y = sy;
-    framebuffer = fb;
     foreground = fg;
     background = bg;
 }
@@ -45,7 +43,7 @@ void console_keyboard(Key_Info info)
     else if(!info.release && info.modifier && info.key == ENTER)
     {
         // clear cursor
-        draw_rect(col * (PSF1_WIDTH + col_pad) + x, row * (font->charsize + line_pad) + y, PSF1_WIDTH + col_pad, font->charsize + line_pad, background, framebuffer);
+        draw_rect(col * (PSF1_WIDTH + col_pad) + x, row * (font->charsize + line_pad) + y, PSF1_WIDTH + col_pad, font->charsize + line_pad, background);
 
         input_mode = false;
         row ++;
@@ -57,17 +55,17 @@ void console_keyboard(Key_Info info)
     {
         if(col == 0) return;
         // clear cursor
-        draw_rect(col * (PSF1_WIDTH + col_pad) + x, row * (font->charsize + line_pad) + y, PSF1_WIDTH + col_pad, font->charsize + line_pad, background, framebuffer);
+        draw_rect(col * (PSF1_WIDTH + col_pad) + x, row * (font->charsize + line_pad) + y, PSF1_WIDTH + col_pad, font->charsize + line_pad, background);
 
         col --;
-        draw_rect(col * (PSF1_WIDTH + col_pad) + x, row * (font->charsize + line_pad) + y, PSF1_WIDTH + col_pad, font->charsize + line_pad, background, framebuffer);
+        draw_rect(col * (PSF1_WIDTH + col_pad) + x, row * (font->charsize + line_pad) + y, PSF1_WIDTH + col_pad, font->charsize + line_pad, background);
     }
 }
 
 void cprintch(char c)
 {
     PSF1_font* font = get_font();
-    draw_char(col * (PSF1_WIDTH + col_pad) + x, row * (font->charsize + line_pad) + y, foreground, background, c, framebuffer);
+    draw_char(col * (PSF1_WIDTH + col_pad) + x, row * (font->charsize + line_pad) + y, foreground, background, c);
     col++;
 }
 
@@ -80,7 +78,7 @@ void cprintstr(const char *str)
 void draw_cursor()
 {
     PSF1_font* font = get_font();
-    draw_rect(col * (PSF1_WIDTH + col_pad) + x, row * (font->charsize + line_pad) + y + 10, PSF1_WIDTH, 5, foreground, framebuffer);
+    draw_rect(col * (PSF1_WIDTH + col_pad) + x, row * (font->charsize + line_pad) + y + 10, PSF1_WIDTH, 5, foreground);
 }
 
 void console_loop()

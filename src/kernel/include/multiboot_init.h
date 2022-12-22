@@ -11,3 +11,4 @@ void map_framebuffer(uint64_t addr, uint64_t screen_size);
 uint64_t get_info_addr();
 framebuffer_tag* get_framebuffer_tag();
 void init_framebuffer();
+void init_multiboot();

@@ -27,12 +27,12 @@ void init_timer()
     time = 0;
 }
 
-void inc_time()
+inline void inc_time()
 {
     time ++;
 }
 
-uint64_t get_time() 
+inline uint64_t get_time() 
 {
     return time;
 }

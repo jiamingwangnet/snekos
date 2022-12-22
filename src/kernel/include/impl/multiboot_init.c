@@ -2,16 +2,9 @@
 #include "../memory.h"
 
 extern uint64_t multiboot_info;
+extern framebuffer_tag* tagfb;
 
-void map_framebuffer(uint64_t framebuffer, uint64_t screen_size)
-{
-    for(uint64_t i = 0; i < screen_size; i += 0x200000)
-    {
-        map_address((void*)(framebuffer + i), (void*)(FRAMEBUFFER + i));
-    }
-}
-
-uint64_t get_info_addr() 
+inline uint64_t get_info_addr() 
 {
     if (multiboot_info & 7)
     {
@@ -21,23 +14,35 @@ uint64_t get_info_addr()
     return multiboot_info & 0xffffffff;
 }
 
-framebuffer_tag* get_framebuffer_tag()
+void init_multiboot()
 {
     uint64_t addr = get_info_addr();
     for(LOOP_TAGS(tag, addr))
     {
-        if(tag->type == MULTIBOOT_TAG_TYPE_FRAMEBUFFER)
+        switch (tag->type)
         {
-            return (framebuffer_tag*) tag;
+        case MULTIBOOT_TAG_TYPE_FRAMEBUFFER:
+        {
+            tagfb = (framebuffer_tag*)tag;
+            init_framebuffer();
+            break;
+        }        
+        default:
+            break;
         }
     }
-    return 0;
+}
+
+void map_framebuffer(uint64_t framebuffer, uint64_t screen_size)
+{
+    for(uint64_t i = 0; i < screen_size; i += 0x200000)
+    {
+        map_address((void*)(framebuffer + i), (void*)(FRAMEBUFFER + i));
+    }
 }
 
 void init_framebuffer()
 {
-    tagfb = get_framebuffer_tag();
-
     if(tagfb != 0)
     {
         SCRN_HEIGHT = tagfb->common.framebuffer_height;
