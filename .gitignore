@@ -1,7 +1,7 @@
 /build
 /dist
 /bootloader
-resources.md
+/notes
 run.bat
 run_debug.bat
 run_console.bat
