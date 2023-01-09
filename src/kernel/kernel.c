@@ -8,6 +8,7 @@
 #include "include/timer.h"
 #include "include/font.h"
 #include "include/console.h"
+#include "include/kmalloc.h"
 
 void kernel_main()
 {
@@ -19,6 +20,7 @@ void kernel_main()
 
     init_console(20, 20, 0xe0ffeb, 0x0f0f0f);
     init_timer();
+    init_heap();
 
     #ifdef DEBUG_LOG
             serial_str("framebuffer address: 0x");
