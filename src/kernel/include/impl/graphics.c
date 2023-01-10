@@ -43,4 +43,5 @@ inline void draw_rect(uint32_t x, uint32_t y, uint32_t width, uint32_t height, u
 inline void update_buffer(void)
 {
     memcpy((void*)SRN_BUFFER, (void*)D_BUFFER, SCRN_WIDTH * SCRN_HEIGHT * sizeof(uint32_t));
+    // memset((void*)D_BUFFER, 0, SCRN_WIDTH * SCRN_HEIGHT * sizeof(uint32_t));
 }
