@@ -1,6 +1,14 @@
 #include "../graphics.h"
+#include "../kmalloc.h"
+#include "../stdlib.h"
 
 uint32_t* const SRN_BUFFER = (uint32_t*) FRAMEBUFFER;
+uint32_t* D_BUFFER;
+
+void init_graphics(void)
+{
+    D_BUFFER = (uint32_t*)kmalloc(SCRN_WIDTH * SCRN_HEIGHT * sizeof(uint32_t));
+}
 
 inline uint32_t init_color(Color color)
 {
@@ -18,7 +26,7 @@ inline uint32_t init_color_u32(uint32_t color)
 
 inline void put_pixel(uint32_t x, uint32_t y, uint32_t color)
 {
-    SRN_BUFFER[y * SCRN_WIDTH + x] = color;
+    D_BUFFER[y * SCRN_WIDTH + x] = color;
 }
 
 inline void draw_rect(uint32_t x, uint32_t y, uint32_t width, uint32_t height, uint32_t color)
@@ -30,4 +38,9 @@ inline void draw_rect(uint32_t x, uint32_t y, uint32_t width, uint32_t height, u
             put_pixel(rx, ry, color);
         }
     }
+}
+
+inline void update_buffer(void)
+{
+    memcpy((void*)SRN_BUFFER, (void*)D_BUFFER, SCRN_WIDTH * SCRN_HEIGHT * sizeof(uint32_t));
 }
