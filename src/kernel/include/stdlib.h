@@ -4,6 +4,8 @@
 
 int itoa(int value, char *sp, int radix);
 void* memcpy(void* dest, const void* src, size_t count);
+void *memset(void *dest, int ch, size_t count);
+
 
 // optimisations
 extern void *memcpy64(void *dest, const void *src, size_t size);

@@ -49,6 +49,14 @@ void *memcpy(void *dest, const void *src, size_t size)
     return dest;
 }
 
+void *memset(void *dest, int ch, size_t count)
+{
+    int *tmp = (int*)dest;
+    while(count--)
+        *tmp++ = ch;
+    return dest;
+}
+
 // void *memcpy(void *dest, const void *src, size_t count)
 // {
 //          if(count % 64 == 0) return memcpy64(dest, src, count);
