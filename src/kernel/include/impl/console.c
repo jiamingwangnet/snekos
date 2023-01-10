@@ -1,5 +1,6 @@
 #include "../console.h"
 #include "../graphics.h"
+#include "../stdlib.h"
 
 uint32_t foreground = 0xffffff;
 uint32_t background = 0x000000;
@@ -16,6 +17,9 @@ const uint32_t col_pad = 1;
 const char* cmdtxt = "| KERNEL CMD :> ";
 bool input_mode = false;
 
+char input_buffer[256];
+char *buffer_ptr = input_buffer;
+
 void printcmd()
 {
     cprintstr(cmdtxt);
@@ -28,6 +32,31 @@ void init_console(uint32_t sx, uint32_t sy, uint32_t fg, uint32_t bg)
     y = sy;
     foreground = fg;
     background = bg;
+    printcmd();
+}
+
+void append_buffer(char c)
+{
+    *buffer_ptr = c;
+    buffer_ptr++;
+}
+
+void clear_buffer()
+{
+    for(size_t i = 0; i < 256; i++)
+    {
+        input_buffer[i] = 0;
+    }
+    buffer_ptr = input_buffer;
+}
+
+void decrease_buffer()
+{
+    *buffer_ptr = 0;
+    if(buffer_ptr > input_buffer)
+    {
+        buffer_ptr--;
+    }
 }
 
 void console_keyboard(Key_Info info)
@@ -39,6 +68,7 @@ void console_keyboard(Key_Info info)
     if(!info.release && !info.modifier)
     {
         cprintch(info.key);
+        append_buffer(info.key);
     }
     else if(!info.release && info.modifier && info.key == ENTER)
     {
@@ -49,14 +79,41 @@ void console_keyboard(Key_Info info)
         row ++;
         col = 0;
 
+        {
+            const char *hello_cmd = "hello";
+            char *it = input_buffer;
+            char *cmd_it = hello_cmd;
+
+            bool match = true;
+
+            while(*it && *cmd_it)
+            {
+                match &= (*it == *cmd_it);
+                it++;
+                cmd_it++;
+            }
+            match &= (*it == *cmd_it);
+
+            if(match)
+            {
+                cprintstr("Hello There!");
+                input_mode = false;
+                row ++;
+                col = 0;
+            }
+        }
+
+        clear_buffer();
+
         printcmd();
     }
     else if(!info.release && info.modifier && info.key == BACKSPACE)
     {
-        if(col == 0) return;
+        if(col == 0 || buffer_ptr == input_buffer) return;
         // clear cursor
         draw_rect(col * (PSF1_WIDTH + col_pad) + x, row * (font->charsize + line_pad) + y, PSF1_WIDTH + col_pad, font->charsize + line_pad, background);
 
+        decrease_buffer();
         col --;
         draw_rect(col * (PSF1_WIDTH + col_pad) + x, row * (font->charsize + line_pad) + y, PSF1_WIDTH + col_pad, font->charsize + line_pad, background);
     }
@@ -80,7 +137,7 @@ void draw_cursor()
     PSF1_font* font = get_font();
     draw_rect(col * (PSF1_WIDTH + col_pad) + x, row * (font->charsize + line_pad) + y + 10, PSF1_WIDTH, 5, foreground);
 }
-
+extern uint32_t* D_BUFFER;
 void console_loop()
 {
     if(input_mode) draw_cursor();

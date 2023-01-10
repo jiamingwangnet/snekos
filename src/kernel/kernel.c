@@ -18,9 +18,10 @@ void kernel_main()
     init_idt();
     init_font();
 
-    init_console(20, 20, 0xe0ffeb, 0x0f0f0f);
     init_timer();
     init_heap();
+
+    init_graphics();
 
     #ifdef DEBUG_LOG
             serial_str("framebuffer address: 0x");
@@ -111,6 +112,8 @@ void kernel_main()
     draw_rect(SCRN_WIDTH/2 - 130, 200, 60, 120,0);
     draw_rect(SCRN_WIDTH/2 + 70, 200, 60, 120, 0);
 
+    update_buffer();
+
     wait_ticks(3000);
 
     draw_rect(0, 0, SCRN_WIDTH, SCRN_HEIGHT, 0x0f0f0f);
@@ -122,34 +125,37 @@ void kernel_main()
                      "THE QUICK BROWN FOX JUMPS OVER THE LAZY DOG.\n"
                      "1234567890\n"
                      "~!@#$%^&*()_+<>[]{}");
+    
+    update_buffer();
 
     wait_ticks(1500);
     
-    init_keyboard(console_keyboard);
     draw_rect(0, 0, SCRN_WIDTH, SCRN_HEIGHT, 0x0f0f0f);
+    init_console(20, 20, 0xe0ffeb, 0x0f0f0f);
+    init_keyboard(console_keyboard);
 
-    printcmd();
+    update_buffer();
 
     bool right = true;
     for(uint32_t x = 0;;)
     {
+        // clear path
+        draw_rect(0,0,SCRN_WIDTH, 10, 0x303030);
+        draw_rect(x, 0, 10, 10, 0x28c77a);
+        if(right)
+            x++;
+        else
+            x--;
+        if(x + 10 >= SCRN_WIDTH)
+            right = false;
+        else if(x <= 0)
+            right = true;
+
         console_loop();
 
-        if(get_time() % 1 == 0)
+        if(get_time() % (1000/60) == 0)
         {
-            // clear path
-            draw_rect(0,0,SCRN_WIDTH, 10, 0x303030);
-
-            draw_rect(x, 0, 10, 10, 0x28c77a);
-            if(right)
-                x++;
-            else
-                x--;
-
-            if(x + 10 >= SCRN_WIDTH)
-                right = false;
-            else if(x <= 0)
-                right = true;
+            update_buffer();
         }
     }
 }
