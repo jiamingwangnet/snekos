@@ -37,6 +37,9 @@ void *kmalloc(size_t size)
             return (void*)current + sizeof(mem_block_t);
         }
 
+        if(current == heap_end)
+            expand_heap(size);
+
         current = current->next;
     }
 
@@ -81,8 +84,6 @@ void expand_heap(size_t size)
 
     heap_end->next = new_block;
     heap_end = new_block;
-
-    merge_blocks(new_block);
 }
 
 mem_block_t *split_block(mem_block_t *block, size_t size)
