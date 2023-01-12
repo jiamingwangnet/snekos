@@ -137,7 +137,7 @@ void draw_cursor()
     PSF1_font* font = get_font();
     draw_rect(col * (PSF1_WIDTH + col_pad) + x, row * (font->charsize + line_pad) + y + 10, PSF1_WIDTH, 5, foreground);
 }
-extern uint32_t* D_BUFFER;
+
 void console_loop()
 {
     if(input_mode) draw_cursor();

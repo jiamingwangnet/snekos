@@ -99,7 +99,7 @@ void kernel_main()
             serial_char('\n');
     #endif
 
-    draw_rect(0,0,SCRN_WIDTH,SCRN_HEIGHT,0xffffff);
+    fill_screen(0xffffff);
 
     // draw smile
 
@@ -116,7 +116,7 @@ void kernel_main()
 
     wait_ticks(3000);
 
-    draw_rect(0, 0, SCRN_WIDTH, SCRN_HEIGHT, 0x0f0f0f);
+    fill_screen(0x0f0f0f);
     draw_str(20, 20, 0xe0ffeb,0xf0f0f,
                     "Hello, World!\n"
                      "TEST CMD!!!\n"
@@ -130,7 +130,7 @@ void kernel_main()
 
     wait_ticks(1500);
     
-    draw_rect(0, 0, SCRN_WIDTH, SCRN_HEIGHT, 0x0f0f0f);
+    fill_screen(0x0f0f0f);
     init_console(20, 20, 0xe0ffeb, 0x0f0f0f);
     init_keyboard(console_keyboard);
 

@@ -21,6 +21,7 @@ start:
     call check_multiboot
     call check_cpuid
     call check_long_mode
+    call check_sse
 
     call setup_tables
     call enable_paging
@@ -50,6 +51,23 @@ check_cpuid:
     popfd
     cmp eax, ecx
     je (err - VOFFSET)
+    ret
+
+check_sse:
+    mov eax, 0x1
+    cpuid
+    test edx, 1 << 25
+    jz (err - VOFFSET)
+
+    ; enable sse
+    mov eax, cr0
+    and ax, 0xfffb
+    or ax, 0x2
+    mov cr0, eax
+    
+    mov eax, cr4
+    or ax, 3 << 9
+    mov cr4, eax
     ret
 
 check_long_mode:
