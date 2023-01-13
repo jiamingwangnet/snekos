@@ -12,6 +12,7 @@ extern SCRN_HEIGHT
 extern SCRN_SIZE
 extern B_BUFFER ; gives the physical address or something idk but you gotta subtract the higher half offset thing
 extern SRN_BUFFER
+extern SCRN_PITCH
 
 update_buffer:
     push rax
@@ -20,7 +21,7 @@ update_buffer:
 
     mov rax, [B_BUFFER - 0xffffffff80000000]
     mov rbx, [SRN_BUFFER - 0xffffffff80000000]
-    mov rcx, 0
+    xor rcx, rcx
 .fill:
     movaps xmm0, [rax + rcx]
     movaps [rbx + rcx], xmm0
@@ -39,8 +40,6 @@ put_pixel:
     mov rax, [B_BUFFER - 0xffffffff80000000]
     mov dword [rax + rsi*4], edx
 
-    mov rax, 0
-
     ret
 
 draw_rect:
@@ -53,7 +52,14 @@ draw_rect:
     push r9
     push rbx
 
-    add rcx, rsi ; y
+    mov rax, [B_BUFFER - 0xffffffff80000000]
+
+    add rcx, rsi
+    imul rsi, [SCRN_PITCH]
+    imul rcx, [SCRN_PITCH]
+    add rcx, rax
+    add rsi, rax
+
     add rdx, rdi ; x
     mov r9, rdi
 
@@ -61,22 +67,15 @@ draw_rect:
     mov rdi, r9
     
 .loop_x:
-    mov rbx, rsi
-
-    imul rbx, [SCRN_WIDTH]
-    add rbx, rdi
-    mov rax, [B_BUFFER - 0xffffffff80000000]
-    mov dword [rax + rbx*4], r8d
+    mov dword [rsi + rdi*4], r8d
 
     inc rdi
     cmp rdi, rdx
     jne .loop_x
 
-    inc rsi
+    add rsi, [SCRN_PITCH]
     cmp rsi, rcx
     jne .loop_y
-
-    mov rax, 0
 
     pop rbx
     pop r9
@@ -105,7 +104,7 @@ fill_screen:
     pslldq xmm0, 8
     addps xmm0, xmm1
     
-    mov rcx, 0
+    xor rcx, rcx
 .fill:
     movaps [rax + rcx], xmm0
     add rcx, 16

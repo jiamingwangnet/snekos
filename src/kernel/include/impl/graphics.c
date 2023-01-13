@@ -4,12 +4,14 @@
 
 uint32_t* const SRN_BUFFER = (uint32_t*) FRAMEBUFFER;
 uint32_t* B_BUFFER;
+uint32_t* SCRN_PITCH;
 
 void init_graphics(void)
 {
     B_BUFFER = (uint32_t*)kmalloc(SCRN_WIDTH * SCRN_HEIGHT * sizeof(uint32_t));
     memset((void*)B_BUFFER, 0, SCRN_WIDTH * SCRN_HEIGHT * sizeof(uint32_t));
     SCRN_SIZE = SCRN_HEIGHT * SCRN_WIDTH * sizeof(uint32_t);
+    SCRN_PITCH = tagfb->common.framebuffer_pitch;
 }
 
 inline uint32_t init_color(Color color)
