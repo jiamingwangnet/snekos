@@ -1,5 +1,5 @@
 CFLAGS = -mcmodel=large -mno-sse -mno-red-zone -fno-pic -masm=intel -m64 -O3 -ffreestanding -Wall -Wextra
-DEFINES = OPTIMISE_GRAPHICS
+DEFINES = OPTIMISE_GRAPHICS -DDEBUG_LOG
 
 ASM_SOURCE_FILES := $(shell find src/ -name *.asm)
 ASM_OBJ_FILES := $(patsubst src/%.asm, build/%.o, $(ASM_SOURCE_FILES))
