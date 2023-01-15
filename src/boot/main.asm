@@ -31,14 +31,22 @@ start:
     
     jmp gdt64.code:(long_mode_start - VOFFSET) ; far jump
 err:
+    mov ecx, 0xA0000
+.fill_red
+    mov dword [ecx], eax
+    add ecx, 4
+    cmp ecx, 0xAFFFF
+    jne .fill_red
+
     hlt
 
-check_multiboot:
+check_multiboot: ; 18c718
     cmp eax, 0x36d76289
-    jne (err - VOFFSET)
+    mov eax, 0x18c718
+    jne err
     ret
 
-check_cpuid:
+check_cpuid: ; 0xe805be
     pushfd
     pop eax
     mov ecx, eax
@@ -50,14 +58,17 @@ check_cpuid:
     push ecx
     popfd
     cmp eax, ecx
-    je (err - VOFFSET)
+    mov eax, 0xe805be
+    je err
     ret
 
-check_sse:
+check_sse: ; 0x160ef0
     mov eax, 0x1
     cpuid
     test edx, 1 << 25
-    jz (err - VOFFSET)
+
+    mov eax, 0x160ef0
+    jz err
 
     ; enable sse
     mov eax, cr0
@@ -70,16 +81,17 @@ check_sse:
     mov cr4, eax
     ret
 
-check_long_mode:
+check_long_mode: ; f00e0e
     mov eax, 0x80000000
     cpuid
     cmp eax, 0x80000001
-    jb (err - VOFFSET)
+    jb err
 
     mov eax, 0x80000001
     cpuid
     test edx, 1 << 29
-    jz (err - VOFFSET)
+    mov eax, 0xf00e0e
+    jz err
 
     ret
 
