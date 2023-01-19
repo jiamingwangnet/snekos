@@ -26,10 +26,12 @@ typedef struct
 } Key_Info;
 
 typedef void (*key_callback_t)(Key_Info);
-key_callback_t key_callback;
 
 void handle_key();
-void init_keyboard(key_callback_t callback);
+void init_keyboard();
+
+// the last attched callback will be executed first
+void attach_keyboard(key_callback_t callback);
 
 // test handler
 void serial_keyboard(Key_Info);

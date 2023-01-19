@@ -21,10 +21,25 @@ const char keys_upper[KEY_MAX] = {
 bool holding_lshift = false;
 bool holding_rshift = false;
 
-void init_keyboard(key_callback_t callback)
+key_callback_t callbacks[256];
+key_callback_t *callback_end = callbacks;
+
+void init_keyboard()
 {
     add_handler(IRQ1, &handle_key);
-    key_callback = callback;
+}
+
+void attach_keyboard(key_callback_t callback)
+{
+    *callback_end = callback;
+    callback_end++;
+}
+
+void handle_callbacks(Key_Info info)
+{
+    key_callback_t *tmp = callback_end;
+    while(tmp != callbacks)
+        (*--tmp)(info);
 }
 
 void handle_key()
@@ -57,7 +72,7 @@ void handle_key()
     const char* keys = holding_lshift | holding_rshift ? keys_upper : keys_lower;
 
     char key = c > KEY_MAX ? keys[c - RELEASE_OFFSET] : keys[c];
-    bool release = c > KEY_MAX;
+    bool release = c & 0x80;
     bool modifier = key == 0;
     if(modifier)
         key = c;
@@ -68,7 +83,7 @@ void handle_key()
         .release = release, // skip the function keys and assume they're release keys
         .modifier = modifier,
     };
-    key_callback(info);
+    handle_callbacks(info);
 }
 
 void serial_keyboard(Key_Info info)
