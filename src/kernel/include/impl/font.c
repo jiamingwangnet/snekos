@@ -32,15 +32,13 @@ void init_font()
 void draw_char(uint32_t x, uint32_t y, uint32_t foreground, uint32_t background, char c)
 {
     if(font == NULL || c == '\n') return;
-    uint32_t width = PSF1_WIDTH;
-    uint32_t height = (uint32_t)font->charsize;
 
-    uint8_t* glyph = (uint8_t*)(&_binary_assets_vga_font_psf_start + sizeof(PSF1_font) + c * height);
+    uint8_t* glyph = (uint8_t*)(&_binary_assets_vga_font_psf_start + sizeof(PSF1_font) + c * (uint32_t)font->charsize);
 
-    for(uint32_t dy = y; dy < height + y; dy++)
+    for(uint32_t dy = y; dy < (uint32_t)font->charsize + y; dy++)
     {
         uint8_t row = glyph[dy - y];
-        for(uint32_t dx = x; dx < width + x; dx++)
+        for(uint32_t dx = x; dx < PSF1_WIDTH + x; dx++)
         {
             uint8_t mask = 0b10000000 >> (dx - x);
             uint32_t color = (row & mask) == 0 ? background : foreground;
