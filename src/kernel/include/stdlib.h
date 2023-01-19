@@ -3,6 +3,8 @@
 #include "types.h"
 
 int itoa(int value, char *sp, int radix);
+int atoi(const char *str);
+int strcmp (const char* str1, const char* str2);
 void* memcpy(void* dest, const void* src, size_t count);
 void *memset(void *dest, int ch, size_t count);
 
