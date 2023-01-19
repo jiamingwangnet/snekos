@@ -4,7 +4,7 @@
 
 uint32_t* const SRN_BUFFER = (uint32_t*) FRAMEBUFFER;
 uint32_t* B_BUFFER;
-uint32_t* SCRN_PITCH;
+uint32_t SCRN_PITCH;
 
 void init_graphics(void)
 {
