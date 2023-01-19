@@ -61,7 +61,7 @@ void isr_handler(reg_status_t status)
 
     draw_rect(0, 0, SCRN_WIDTH, SCRN_HEIGHT, ERR_BG);
     
-    draw_str(20, 20, ERR_FG, ERR_BG, "Interrupt Hit!");
+    draw_str(20, 20, ERR_FG, ERR_BG, "FATAL ERROR!");
 
     draw_str(20, 37, ERR_FG, ERR_BG, "ID: ");
     draw_str(20 + PSF1_WIDTH + 17 * 11, 37, ERR_FG, ERR_BG, c_id);
@@ -94,6 +94,7 @@ void isr_handler(reg_status_t status)
 
     draw_str(20, 224, ERR_FG, ERR_BG, "SS :                0x");
     draw_str(20 + PSF1_WIDTH + 17 * 11 + 4, 224, ERR_FG, ERR_BG, c_ss);
+    update_buffer();
 
 #ifdef DEBUG_LOG
     serial_str("\n\ninterrupt hit!! ID: ");
