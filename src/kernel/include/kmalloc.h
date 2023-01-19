@@ -39,3 +39,9 @@ void *kcalloc(size_t nmemb, size_t size);
 void kfree(void *ptr);
 void *kmalloc(size_t size);
 void *krealloc(void *ptr, size_t size);
+
+#ifdef DEBUG_LOG
+
+void serial_print_blocks();
+
+#endif

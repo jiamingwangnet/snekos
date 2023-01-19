@@ -15,13 +15,15 @@ void init_heap()
 
 void *kmalloc(size_t size)
 {
+    if(size == 0) return NULL;
+
     size = align(size);
     mem_block_t *current = heap_start;
     size_t real_size = size + sizeof(mem_block_t);
 
     while(current != NULL)
     {
-        if(current->is_free && real_size < current->size)
+        if(current->is_free && real_size <= current->size)
         {
             if(current->size - real_size > MINIUM_SIZE)
             {
@@ -38,7 +40,7 @@ void *kmalloc(size_t size)
         }
 
         if(current == heap_end)
-            expand_heap(size);
+            expand_heap(real_size);
 
         current = current->next;
     }
@@ -135,3 +137,52 @@ void merge_blocks(mem_block_t *target)
         merge_blocks(target);
     }
 }
+
+#ifdef DEBUG_LOG
+
+void serial_print_blocks()
+{
+    char cheader[16];
+    itoa(sizeof(mem_block_t), cheader, 10);
+    serial_str("\n\nsize of header: ");
+    serial_str(cheader);
+    serial_char('\n');
+
+    mem_block_t *it = heap_start;
+    while(it != NULL)
+    {
+        char caddr[16];
+        char csize[16];
+        char cprev[16];
+        char cnext[16];
+
+        itoa(it->size, csize, 10);
+        itoa((uint32_t)it > 0 ? (uint32_t)it - 0x80000000 : (uint32_t)it, caddr, 16);
+        itoa((uint32_t)it->prev > 0 ? (uint32_t)it->prev - 0x80000000 : (uint32_t)it->prev, cprev, 16);
+        itoa((uint32_t)it->next > 0 ? (uint32_t)it->next - 0x80000000 : (uint32_t)it->next, cnext, 16);
+        
+        serial_str("\naddr: 0x");
+        serial_str(caddr);
+        serial_char('\n');
+
+        serial_str("size: ");
+        serial_str(csize);
+        serial_char('\n');
+
+        serial_str("free: ");
+        serial_str(it->is_free ? "true" : "false");
+        serial_char('\n');
+
+        serial_str("prev: 0x");
+        serial_str(cprev);
+        serial_char('\n');
+
+        serial_str("next: 0x");
+        serial_str(cnext);
+        serial_char('\n');
+
+        it = it->next;
+    }
+}
+
+#endif
