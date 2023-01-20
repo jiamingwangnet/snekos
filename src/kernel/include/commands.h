@@ -18,6 +18,13 @@ typedef struct
 #define DECL_CMDFUNC(cname) \
     void cmd_##cname##_func(int argc, char *argv[]);
 
+#define N_COMMANDS 18
+command_t commands[N_COMMANDS];
+
+#define ADDCMD(cname, index) commands[index] = cmd_##cname;
+
+void init_commands();
+
 DECL_CMDFUNC(hello)
 DECL_CMDFUNC(add)
 DECL_CMDFUNC(sub)
@@ -28,3 +35,11 @@ DECL_CMDFUNC(setrow)
 DECL_CMDFUNC(setcol)
 DECL_CMDFUNC(scrninfo)
 DECL_CMDFUNC(checksse)
+DECL_CMDFUNC(clear)
+DECL_CMDFUNC(memdump)
+DECL_CMDFUNC(timepit)
+DECL_CMDFUNC(write)
+DECL_CMDFUNC(malloc)
+DECL_CMDFUNC(free)
+DECL_CMDFUNC(call)
+DECL_CMDFUNC(help)

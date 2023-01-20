@@ -23,24 +23,12 @@ bool input_mode = false;
 char input_buffer[INPUT_BUFFER_SIZE];
 char *buffer_ptr = input_buffer;
 
-#define N_COMMANDS 10
-command_t commands[N_COMMANDS];
+#define TAB_WDITH 4
 
 // stores the terminal text
 char *con_memory;
 char *mem_end;
 size_t con_memory_size = 0x200000; // TODO: implement this fully, this caused a lot of errors
-
-extern command_t cmd_hello;
-extern command_t cmd_add;
-extern command_t cmd_sub;
-extern command_t cmd_mul;
-extern command_t cmd_div;
-extern command_t cmd_print;
-extern command_t cmd_setrow;
-extern command_t cmd_setcol;
-extern command_t cmd_scrninfo;
-extern command_t cmd_checksse;
 
 inline void expand_cmem()
 {
@@ -57,6 +45,15 @@ void printcmd()
     input_mode = true;
 }
 
+void clear()
+{
+    con_memory[0] = 0;
+    con_memory[1] = 0;
+    // while(*tmp)
+    //     *tmp++ = 0;
+    mem_end = con_memory;
+}
+
 void init_console(uint32_t sx, uint32_t sy, uint32_t fg, uint32_t bg)
 {
     x = sx;
@@ -69,16 +66,7 @@ void init_console(uint32_t sx, uint32_t sy, uint32_t fg, uint32_t bg)
 
     mem_end = con_memory;
 
-    commands[0] = cmd_hello;
-    commands[1] = cmd_add;
-    commands[2] = cmd_sub;
-    commands[3] = cmd_mul;
-    commands[4] = cmd_div;
-    commands[5] = cmd_print;
-    commands[6] = cmd_setrow;
-    commands[7] = cmd_setcol;
-    commands[8] = cmd_scrninfo;
-    commands[9] = cmd_checksse;
+    init_commands();
 
     // fit console
     PSF1_font *font = get_font();
@@ -270,7 +258,10 @@ void console_loop()
     char *start = c;
     for(; c != mem_end; c++)
     {
-        draw_char(col * (PSF1_WIDTH + col_pad) + x, row * (font->charsize + line_pad) + y, foreground, background, *c);
+        if(*c == '\t')
+            col += TAB_WDITH;
+        else
+            draw_char(col * (PSF1_WIDTH + col_pad) + x, row * (font->charsize + line_pad) + y, foreground, background, *c);
 
         col++;
 

@@ -12,3 +12,4 @@ void kprintf(const char *str);
 void draw_cursor();
 void console_loop();
 void printcmd();
+void clear();

@@ -2,6 +2,8 @@
 #include "../stdlib.h"
 #include "../console.h"
 #include "../graphics.h"
+#include "../timer.h"
+#include "../kmalloc.h"
 
 CREATE_COMMAND(hello, {
     kprintf("Hello There!\n");
@@ -147,7 +149,7 @@ CREATE_COMMAND(scrninfo, {
     itoa(tagfb->common.framebuffer_height, cheight, 10);
     itoa(tagfb->common.framebuffer_bpp, cbpp, 10);
     itoa(tagfb->common.framebuffer_addr, caddr, 16);
-    itoa(B_BUFFER, cbaddr, 16);
+    itoa((uint64_t)B_BUFFER - 0xffffffff80000000, cbaddr, 16);
     
 
     kprintf("----Screen Information----\n");
@@ -187,3 +189,173 @@ CREATE_COMMAND(checksse, {
     else
         kprintf("SSE not available.\n");
 })
+
+CREATE_COMMAND(clear, {
+    clear();
+})
+
+CREATE_COMMAND(memdump, { // TODO: change to 64bit
+    if(argc != 3)
+    {
+        kprintf("Error: memdump requires 3 arguments\n");
+        return;
+    }
+
+    size_t bytes = atoi(argv[0]);
+    size_t columns = atoi(argv[1]);
+    uint32_t address = atoi(argv[2]);
+
+    for(size_t b = 0; b < bytes; b++)
+    {
+        uint8_t byte = *(uint8_t*)(address + b * sizeof(uint8_t));
+        char cbyte[3];
+        itoa(byte, cbyte, 16);
+
+        if(byte < 0x10)
+        {
+            cbyte[1] = cbyte[0];
+            cbyte[0] = '0';
+        }
+
+        kprintf(cbyte);
+        kprintch(' ');
+
+        if((b+1) % columns == 0)
+        {
+            kprintch('\n');
+        }
+    }
+    kprintch('\n');
+})
+
+CREATE_COMMAND(timepit, {
+    char ctime[32];
+    itoa(get_time(), ctime, 10);
+    kprintf("The PIT time is: ");
+    kprintf(ctime);
+    kprintch('\n');
+})
+
+CREATE_COMMAND(write, {
+    if(argc != 3)
+    {
+        kprintf("Must have 3 arguments: size, data, destination\n");
+        return;
+    }
+
+    if(strcmp(argv[0], "byte"))
+        *(uint8_t*)atoi(argv[2]) = (uint8_t)atoi(argv[1]);
+    else if(strcmp(argv[0], "word"))
+        *(uint16_t*)atoi(argv[2]) = (uint16_t)atoi(argv[1]);
+    else if(strcmp(argv[0], "dword"))
+        *(uint32_t*)atoi(argv[2]) = (uint32_t)atoi(argv[1]);
+    else
+    {
+        kprintf("Must be a valid size below QWORD\n");
+        return;
+    }
+
+    char caddr16[16];
+    itoa(atoi(argv[2]), caddr16, 16);
+
+    kprintf("Data written to 0x");
+    kprintf(caddr16);
+    kprintch('\n');
+})
+
+CREATE_COMMAND(malloc, {
+    if(argc != 1)
+    {
+        kprintf("Error: must have only 1 argument\n");
+        return;
+    }
+
+    uint64_t addr = (uint64_t)kmalloc(atoi(argv[0])) - 0xffffffff80000000;
+
+    char caddr[16];
+    char caddr16[16];
+
+    itoa((uint32_t)addr, caddr, 10);
+    itoa((uint32_t)addr, caddr16, 16);
+
+    kprintf("Allocated memory at: ");
+    kprintf(caddr);
+    kprintf(" (0x");
+    kprintf(caddr16);
+    kprintf(")\n");
+})
+
+CREATE_COMMAND(free, {
+    if(argc != 1)
+    {
+        kprintf("Error: must have only 1 argument\n");
+        return;
+    }
+
+    void *addr = (void*)atoi(argv[0]);
+    kfree(addr);
+
+    // TODO: add a conversion function
+    char caddr16[16];
+    itoa((uint32_t)addr, caddr16, 16);
+
+    kprintf("Freed memory at 0x");
+    kprintf(caddr16);
+    kprintch('\n');
+})
+
+CREATE_COMMAND(call, {
+    if(argc != 1)
+    {
+        kprintf("Error: must have only 1 argument\n");
+        return;
+    }
+    
+    uint64_t addr = atoi(argv[0]) + 0xffffffff80000000;
+    __asm__ volatile("call %0" : : "g"(addr));
+})
+
+CREATE_COMMAND(help, {
+    kprintf(
+        "hello\t                          Prints out \"Hello There!\".\n"
+        "add [nums ...]\t                 Adds the specified numbers together.\n"
+        "sub [nums ...]\t                 Subtracts from the first number.\n"
+        "mul [nums ...]\t                 Multiplies the specified numbers together.\n"
+        "div [nums ...]\t                 Divides the numbers.\n"
+        "print [str ...]\t                Prints the specified text.\n"
+        "setrow [row]\t                   Sets the console max text rows to the specified number.\n"
+        "setcol [col]\t                   Sets the console max text columns to the specified number.\n"
+        "scrninfo\t                       Prints information about the screen.\n"
+        "checksse\t                       Checks whether SSE is available.\n"
+        "clear\t                          Clears the console.\n"
+        "memdump [bytes] [col] [addr]\t   Dumps the memory at the specified address.\n"
+        "timepit\t                        Prints out the amount of time the Programmable Interrupt Timer has fired.\n"
+        "write [size] [data] [addr]\t     Writes the specified data to the address.\n"
+        "malloc [bytes]\t                 Allocates the specified size of memory and prints the address.\n"
+        "free [addr]\t                    Frees the allocated memory at the specified address.\n"
+        "call [addr]\t                    Calls the function at the specified address.\n"
+        "help\t                           Displays this help message.\n"
+    );
+})
+
+void init_commands()
+{
+    ADDCMD(hello, 0)
+    ADDCMD(add, 1)
+    ADDCMD(sub, 2)
+    ADDCMD(mul, 3)
+    ADDCMD(div, 4)
+    ADDCMD(print, 5)
+    ADDCMD(setrow, 6)
+    ADDCMD(setcol, 7)
+    ADDCMD(scrninfo, 8)
+    ADDCMD(checksse, 9)
+    ADDCMD(clear, 10)
+    ADDCMD(memdump, 11)
+    ADDCMD(timepit, 12)
+    ADDCMD(write, 13)
+    ADDCMD(malloc, 14)
+    ADDCMD(free, 15)
+    ADDCMD(call, 16)
+    ADDCMD(help, 17)
+}
