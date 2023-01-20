@@ -88,6 +88,12 @@ void init_console(uint32_t sx, uint32_t sy, uint32_t fg, uint32_t bg)
     printcmd();
 }
 
+// free memory
+void console_end()
+{
+    kfree((void*)con_memory);
+}
+
 void append_buffer(char c)
 {
     *buffer_ptr = c;
