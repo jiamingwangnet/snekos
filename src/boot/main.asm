@@ -42,7 +42,8 @@ err:
 
 check_multiboot: ; 18c718
     cmp eax, 0x36d76289
-    mov eax, 0x18c718
+
+    mov eax, 0x18c718 ; error color
     jne err
     ret
 
@@ -58,7 +59,8 @@ check_cpuid: ; 0xe805be
     push ecx
     popfd
     cmp eax, ecx
-    mov eax, 0xe805be
+
+    mov eax, 0xe805be ; error color
     je err
     ret
 
@@ -67,8 +69,12 @@ check_sse: ; 0x160ef0
     cpuid
     test edx, 1 << 25
 
-    mov eax, 0x160ef0
+    mov eax, 0x160ef0 ; error color
     jz err
+    
+    ; TODO: check for fpu?
+    ; init fpu (floating point unit)
+    fninit
 
     ; enable sse
     mov eax, cr0
@@ -90,7 +96,7 @@ check_long_mode: ; f00e0e
     mov eax, 0x80000001
     cpuid
     test edx, 1 << 29
-    mov eax, 0xf00e0e
+    mov eax, 0xf00e0e ; error color
     jz err
 
     ret
