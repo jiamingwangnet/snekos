@@ -134,3 +134,56 @@ CREATE_COMMAND(setcol, {
     }
     kprintf("Column must be a number greater than 0 or \"fit\"\n");
 })
+
+extern uint32_t* B_BUFFER;
+
+CREATE_COMMAND(scrninfo, {
+    char cwidth[16];
+    char cheight[16];
+    char cbpp[16];
+    char caddr[16];
+    char cbaddr[16];
+    itoa(tagfb->common.framebuffer_width, cwidth, 10);
+    itoa(tagfb->common.framebuffer_height, cheight, 10);
+    itoa(tagfb->common.framebuffer_bpp, cbpp, 10);
+    itoa(tagfb->common.framebuffer_addr, caddr, 16);
+    itoa(B_BUFFER, cbaddr, 16);
+    
+
+    kprintf("----Screen Information----\n");
+    kprintf("Framebuffer address: 0x");
+    kprintf(caddr);
+    kprintch('\n');
+
+    kprintf("Backbuffer address: 0x");
+    kprintf(cbaddr);
+    kprintch('\n');
+
+    kprintf("Width: ");
+    kprintf(cwidth);
+    kprintch('\n');
+
+    kprintf("Height: ");
+    kprintf(cheight);
+    kprintch('\n');
+
+    kprintf("BPP: ");
+    kprintf(cbpp);
+    kprintch('\n');
+})
+
+CREATE_COMMAND(checksse, {
+    uint32_t sse_enabled = 0;
+    __asm__ volatile(
+        "   mov eax, 0x1\n"
+        "   cpuid\n"
+        "   and edx, 1 << 25\n"
+        "   mov %0, edx"
+        : "=r"(sse_enabled)
+    );
+    
+    if(sse_enabled)
+        kprintf("SSE is available.\n");
+    else
+        kprintf("SSE not available.\n");
+})

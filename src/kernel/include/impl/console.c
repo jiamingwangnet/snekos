@@ -23,7 +23,7 @@ bool input_mode = false;
 char input_buffer[INPUT_BUFFER_SIZE];
 char *buffer_ptr = input_buffer;
 
-#define N_COMMANDS 8
+#define N_COMMANDS 10
 command_t commands[N_COMMANDS];
 
 // stores the terminal text
@@ -39,6 +39,8 @@ extern command_t cmd_div;
 extern command_t cmd_print;
 extern command_t cmd_setrow;
 extern command_t cmd_setcol;
+extern command_t cmd_scrninfo;
+extern command_t cmd_checksse;
 
 inline void expand_cmem()
 {
@@ -75,6 +77,8 @@ void init_console(uint32_t sx, uint32_t sy, uint32_t fg, uint32_t bg)
     commands[5] = cmd_print;
     commands[6] = cmd_setrow;
     commands[7] = cmd_setcol;
+    commands[8] = cmd_scrninfo;
+    commands[9] = cmd_checksse;
 
     // fit console
     PSF1_font *font = get_font();
