@@ -32,7 +32,7 @@ start:
     jmp gdt64.code:(long_mode_start - VOFFSET) ; far jump
 err:
     mov ecx, 0xA0000
-.fill_red
+.fill_red:
     mov dword [ecx], eax
     add ecx, 4
     cmp ecx, 0xAFFFF
