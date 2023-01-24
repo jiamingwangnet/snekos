@@ -12,3 +12,6 @@
 
 void out(uint16_t port, uint8_t data);
 uint8_t in(uint16_t port);
+
+void outl(uint16_t port, uint32_t data);
+uint32_t inl(uint16_t port);
