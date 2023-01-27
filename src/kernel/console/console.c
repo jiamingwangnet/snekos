@@ -232,7 +232,6 @@ void draw_cursor(uint32_t col, uint32_t row)
     draw_rect(col * (PSF1_WIDTH + col_pad) + x, row * (font->charsize + line_pad) + y + 10, PSF1_WIDTH, 5, foreground);
 }
 
-extern uint32_t *B_BUFFER;
 void console_loop()
 {
     PSF1_font* font = get_font();
