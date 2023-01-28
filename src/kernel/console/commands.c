@@ -4,6 +4,7 @@
 #include "../include/graphics/graphics.h"
 #include "../include/drivers/timer.h"
 #include "../include/memory/kmalloc.h"
+#include "../include/drivers/pci.h"
 
 CREATE_COMMAND(hello, {
     kprintf("Hello There!\n");
@@ -338,6 +339,74 @@ CREATE_COMMAND(help, {
     );
 })
 
+extern pci_common_t device_list[1024];
+extern pci_common_t *list_ptr;
+CREATE_COMMAND(logpci, {
+    if(argc > 1)
+    {
+        kprintf("Must have 1 or no arguments\n");
+        return;
+    }
+
+    pci_common_t *device_iter = device_list;
+
+    size_t max;
+    size_t i;
+    if(argc == 1)
+    {
+       max = atoi(argv[0]);
+        i = 0;
+    }
+    
+    while(device_iter != list_ptr)
+    {
+        char cvendor_id[16];
+        char cdevice_id[16];
+        char cheader_type[16];
+        char cclass[16];
+        char csubclass[16];
+
+        itoa(device_iter->vendor_id, cvendor_id, 16);
+        itoa(device_iter->device_id, cdevice_id, 16);
+        itoa(device_iter->header_type, cheader_type, 16);
+        itoa(device_iter->class_code, cclass, 16);
+        itoa(device_iter->subclass, csubclass, 16);
+
+        kprintf(pci_get_device_name(device_iter->class_code, device_iter->subclass));
+        kprintch('\n');
+
+        kprintf("Vendor ID: 0x");
+        kprintf(cvendor_id);
+        kprintch('\n');
+
+        kprintf("Device ID: 0x");
+        kprintf(cdevice_id);
+        kprintch('\n');
+
+        kprintf("Header Type: 0x");
+        kprintf(cheader_type);
+        kprintch('\n');
+
+        kprintf("Class Code: 0x");
+        kprintf(cclass);
+        kprintch('\n');
+
+        kprintf("Subclass: 0x");
+        kprintf(csubclass);
+        kprintch('\n');
+
+        kprintch('\n');
+
+        device_iter++;
+
+        if(argc == 1)
+        {   
+            i++;
+            if(i >= max) break;
+        }
+    }
+})
+
 void init_commands()
 {
     ADDCMD(hello, 0)
@@ -358,4 +427,5 @@ void init_commands()
     ADDCMD(free, 15)
     ADDCMD(call, 16)
     ADDCMD(help, 17)
+    ADDCMD(logpci, 18)
 }

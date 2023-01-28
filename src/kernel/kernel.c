@@ -9,6 +9,7 @@
 #include "include/graphics/font.h"
 #include "include/console/console.h"
 #include "include/memory/kmalloc.h"
+#include "include/drivers/pci.h"
 
 void kernel_main()
 {
@@ -23,6 +24,8 @@ void kernel_main()
 
     init_graphics();
     init_keyboard();
+
+    pci_check_all_busses();
 
     #ifdef DEBUG_LOG
             serial_str("framebuffer address: 0x");
