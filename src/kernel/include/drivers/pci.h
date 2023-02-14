@@ -10,6 +10,15 @@
 
 typedef struct 
 {
+    uint8_t bus;
+    uint8_t device;
+    uint8_t function;
+} dev_loc_t;
+
+typedef struct 
+{
+    dev_loc_t location;
+
     // offset 0x0
     uint16_t vendor_id;
     uint16_t device_id;
@@ -26,7 +35,7 @@ typedef struct
     uint8_t latency_timer;
     uint8_t header_type;
     uint8_t bist;
-}   pci_common_t;
+} pci_common_t;
 
 typedef struct
 {
@@ -68,3 +77,6 @@ void pci_check_device(uint8_t bus, uint8_t device);
 void pci_check_bus(uint8_t bus);
 void pci_check_all_busses();
 void pci_check_function(uint8_t bus, uint8_t device, uint8_t func);
+
+pci_common_t *pci_get_device_list();
+pci_common_t *pci_get_device_end();

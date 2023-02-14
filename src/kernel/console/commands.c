@@ -364,13 +364,11 @@ CREATE_COMMAND(logpci, {
         char cdevice_id[16];
         char cheader_type[16];
         char cclass[16];
-        char csubclass[16];
 
         itoa(device_iter->vendor_id, cvendor_id, 16);
         itoa(device_iter->device_id, cdevice_id, 16);
         itoa(device_iter->header_type, cheader_type, 16);
-        itoa(device_iter->class_code, cclass, 16);
-        itoa(device_iter->subclass, csubclass, 16);
+        itoa(((uint16_t)device_iter->class_code << 8) + device_iter->subclass, cclass, 16);
 
         kprintf(pci_get_device_name(device_iter->class_code, device_iter->subclass));
         kprintch('\n');
@@ -387,13 +385,28 @@ CREATE_COMMAND(logpci, {
         kprintf(cheader_type);
         kprintch('\n');
 
-        kprintf("Class Code: 0x");
+        kprintf("Class & Subclass Code: 0x");
         kprintf(cclass);
         kprintch('\n');
 
-        kprintf("Subclass: 0x");
-        kprintf(csubclass);
-        kprintch('\n');
+        if(device_iter->header_type == 0)
+        {
+            char intline[16];
+            char intpin[16];
+            uint16_t line = pci_read_word(device_iter->location.bus, 
+                               device_iter->location.device,
+                               device_iter->location.function, 0x3C);
+            itoa(line, intline, 16);
+            itoa((line & 0xff00) >> 8, intpin, 16);
+
+            kprintf("Interrupt line: 0x");
+            kprintf(intline);
+            kprintch('\n');
+
+            kprintf("Interrupt pin: 0x");
+            kprintf(intpin);
+            kprintch('\n');
+        }
 
         kprintch('\n');
 

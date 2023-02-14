@@ -79,6 +79,12 @@ void pci_check_function(uint8_t bus, uint8_t device, uint8_t func)
     uint8_t secondary_bus;
 
     *list_ptr++ = (pci_common_t){
+        .location = (dev_loc_t){
+            .bus = bus,
+            .device = device,
+            .function = func
+        },
+
         .vendor_id = pci_read_vendor(bus, device, func),
         .device_id = pci_read_device(bus, device, func),
 
@@ -121,6 +127,16 @@ void pci_check_all_busses()
             pci_check_bus(func);
         }
     }
+}
+
+pci_common_t *pci_get_device_list()
+{
+    return device_list;
+}
+
+pci_common_t *pci_get_device_end()
+{
+    return list_ptr;
 }
 
 const char *pci_get_device_name(uint8_t class, uint8_t subclass)
