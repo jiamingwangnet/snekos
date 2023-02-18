@@ -19,6 +19,13 @@ const uint32_t col_pad = 1;
 const char* cmdtxt = "| KERNEL CMD :> ";
 bool input_mode = false;
 
+struct pending_command_t {
+    cmd_func command;
+    int argc;
+    char **argv;
+} pending_command;
+bool hasCommand = false;
+
 #define INPUT_BUFFER_SIZE 512
 char input_buffer[INPUT_BUFFER_SIZE];
 char *buffer_ptr = input_buffer;
@@ -100,11 +107,8 @@ void clear_buffer()
 
 void decrease_buffer()
 {
-    *buffer_ptr = 0;
-    if(buffer_ptr > input_buffer)
-    {
-        buffer_ptr--;
-    }
+    if(buffer_ptr == input_buffer) return;
+    *--buffer_ptr = 0;
 }
 
 void backspace()
@@ -115,10 +119,51 @@ void backspace()
     // draw_rect(col * (PSF1_WIDTH + col_pad) + x, row * (font->charsize + line_pad) + y, PSF1_WIDTH + col_pad, font->charsize + line_pad, background);
 }
 
+void add_pending_command(cmd_func command, int argc, char **argv)
+{
+    pending_command.command = command;
+    pending_command.argc = argc;
+
+    char **alloc_argv = (char**)kmalloc(sizeof(char*) * argc);
+    for(int i = 0; i < argc; i++)
+    {
+        char *arg = argv[i];
+        size_t len = strlen(arg) + 1;
+
+        char *alloc_arg = (char*)kmalloc(len); // REMEMBER TO FREE THE MEMORY
+        strcpy(alloc_arg, arg);
+
+        alloc_argv[i] = alloc_arg;
+    }
+
+    pending_command.argv = alloc_argv;
+    hasCommand = true;
+}
+
+void run_pending_command()
+{
+    if(!hasCommand) return;
+    pending_command.command(pending_command.argc, pending_command.argv);
+
+    // free args
+    for(int i = 0; i < pending_command.argc; i++)
+    {
+        kfree((void*)pending_command.argv[i]);
+    }
+    kfree((void*)pending_command.argv);
+    hasCommand = false;
+
+    printcmd();
+}
+
 // WARNING: input buffer must be cleared after the command handling and the input buffer must not be used after command handling
 void handle_commands()
 {
-    if(!*input_buffer) return;
+    if(!*input_buffer) 
+    {
+        printcmd();
+        return;
+    }
 
     char name[INPUT_BUFFER_SIZE]; // TODO: make dynamic and ignore leading space
     size_t i = 0;
@@ -146,7 +191,7 @@ void handle_commands()
 
             // replace spaces in input buffer
             // last arg will automatically have a 0 at the end
-            char **argv = (char*)kmalloc(sizeof(char*) * argc);
+            char **argv = (char**)kmalloc(sizeof(char*) * argc);
 
             tmp = input_buffer;
             size_t argi = 0;
@@ -164,8 +209,7 @@ void handle_commands()
                 tmp++;
             }
 
-            // run
-            commands[i].func(argc, argv);
+            add_pending_command(commands[i].func, argc, argv);
 
             kfree((void*)argv);
             return;
@@ -174,6 +218,8 @@ void handle_commands()
     kprintf("Error: \"");
     kprintf(name);
     kprintf("\" command not found\n");
+
+    printcmd();
 }
 
 void enter()
@@ -182,15 +228,16 @@ void enter()
     // clear cursor
     // draw_rect(col * (PSF1_WIDTH + col_pad) + x, row * (font->charsize + line_pad) + y, PSF1_WIDTH + col_pad, font->charsize + line_pad, background);
     kprintch('\n');
+    input_mode = false;
 
     // run command
     handle_commands();
-
-    input_mode = false;
 }
 
 void console_keyboard(Key_Info info)
 {
+    // other interrupts do not work here (PIT will not fire)
+
     if(!input_mode) return;
 
     if(!info.release && !info.modifier)
@@ -204,8 +251,6 @@ void console_keyboard(Key_Info info)
 
         // WARNING: input buffer must be cleared after the command handling and the input buffer must not be used after command handling
         clear_buffer();
-
-        printcmd();
     }
     else if(!info.release && info.modifier && info.key == BACKSPACE)
     {
@@ -234,6 +279,7 @@ void draw_cursor(uint32_t col, uint32_t row)
 
 void console_loop()
 {
+    run_pending_command();
     PSF1_font* font = get_font();
     fill_screen(background);
     uint32_t col = 0; 
