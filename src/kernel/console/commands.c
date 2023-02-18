@@ -5,6 +5,7 @@
 #include "../include/drivers/timer.h"
 #include "../include/memory/kmalloc.h"
 #include "../include/drivers/pci.h"
+#include "apps/snake.h"
 
 CREATE_COMMAND(hello, {
     kprintf("Hello There!\n");
@@ -420,6 +421,15 @@ CREATE_COMMAND(logpci, {
     }
 })
 
+CREATE_COMMAND(snake, {
+    main();
+    char cscore[16];
+    itoa(get_score(), cscore, 10);
+    kprintf("Score: ");
+    kprintf(cscore);
+    kprintch('\n');
+})
+
 void init_commands()
 {
     ADDCMD(hello, 0)
@@ -441,4 +451,5 @@ void init_commands()
     ADDCMD(call, 16)
     ADDCMD(help, 17)
     ADDCMD(logpci, 18)
+    ADDCMD(snake, 19)
 }
