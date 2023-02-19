@@ -336,6 +336,8 @@ CREATE_COMMAND(help, {
         "malloc [bytes]\t                 Allocates the specified size of memory and prints the address.\n"
         "free [addr]\t                    Frees the allocated memory at the specified address.\n"
         "call [addr]\t                    Calls the function at the specified address.\n"
+        "logpci [num]\t                   Logs all the PCI devices. The \"num\" argument specifies the number of devices to print.\n"
+        "snake\t                          Starts the snake game.\n"
         "help\t                           Displays this help message.\n"
     );
 })
