@@ -4,6 +4,8 @@
 
 A 64-bit operating system that only runs snake and snake related games.
 
+It has two boot modes, snake and terminal. The snake mode will boot into the snake game and run the game forever, the terminal mode will boot into a terminal for running commands including the snake game.
+
 ## Build
 
 ### Requirements
@@ -22,5 +24,4 @@ Open a terminal and run:
 `qemu-system-x86_64 -drive file=dist/SnekOS.iso`
 
 ## Updates
-- Commands
-- Changed internal drawing cycle
+- Added snake game
