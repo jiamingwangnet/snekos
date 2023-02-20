@@ -18,6 +18,7 @@ const uint32_t col_pad = 1;
 
 const char* cmdtxt = "| KERNEL CMD :> ";
 bool input_mode = false;
+static bool update_console = false;
 
 struct pending_command_t {
     cmd_func command;
@@ -46,7 +47,7 @@ inline void expand_cmem()
     con_memory_size *= 2;
 }
 
-void printcmd()
+void enable_input()
 {
     kprintf(cmdtxt);
     input_mode = true;
@@ -69,6 +70,8 @@ void init_console(uint32_t sx, uint32_t sy, uint32_t fg, uint32_t bg)
     background = bg;
     attach_keyboard(console_keyboard);
 
+    fill_screen(background);
+
     con_memory = (char*)kmalloc(sizeof(char) * con_memory_size);
 
     mem_end = con_memory;
@@ -80,7 +83,7 @@ void init_console(uint32_t sx, uint32_t sy, uint32_t fg, uint32_t bg)
     max_cols = (tagfb->common.framebuffer_width - x) / (PSF1_WIDTH + col_pad) - 1;
     max_rows = (tagfb->common.framebuffer_height - y) / (font->charsize + line_pad) - 1;
 
-    printcmd();
+    console_loop();
 }
 
 // free memory
@@ -109,6 +112,7 @@ void decrease_buffer()
 {
     if(buffer_ptr == input_buffer) return;
     *--buffer_ptr = 0;
+    update_console = true;
 }
 
 void backspace()
@@ -153,7 +157,7 @@ void run_pending_command()
     kfree((void*)pending_command.argv);
     hasCommand = false;
 
-    printcmd();
+    enable_input();
 }
 
 // WARNING: input buffer must be cleared after the command handling and the input buffer must not be used after command handling
@@ -161,7 +165,7 @@ void handle_commands()
 {
     if(!*input_buffer) 
     {
-        printcmd();
+        enable_input();
         return;
     }
 
@@ -219,7 +223,7 @@ void handle_commands()
     kprintf(name);
     kprintf("\" command not found\n");
 
-    printcmd();
+    enable_input();
 }
 
 void enter()
@@ -263,6 +267,7 @@ void console_keyboard(Key_Info info)
 void kprintch(char c)
 {
     *mem_end++ = c;
+    update_console = true;
 }
 
 void kprintf(const char *str)
@@ -279,6 +284,8 @@ void draw_cursor(uint32_t col, uint32_t row)
 
 void console_loop()
 {
+    if(!update_console) return;
+
     run_pending_command();
     PSF1_font* font = get_font();
     fill_screen(background);
@@ -333,4 +340,6 @@ void console_loop()
 
 
     if(input_mode) draw_cursor(col, row);
+
+    update_console = false;
 }

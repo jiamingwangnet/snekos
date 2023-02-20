@@ -1,5 +1,6 @@
 #include "../include/drivers/pci.h"
 #include "../include/io/io.h"
+#include "../include/console/console.h"
 
 // TODO: make dynamic
 pci_common_t device_list[1024];
@@ -127,6 +128,8 @@ void pci_check_all_busses()
             pci_check_bus(func);
         }
     }
+
+    kprintf("Checked PCI devices.\n");
 }
 
 pci_common_t *pci_get_device_list()
