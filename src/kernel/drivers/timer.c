@@ -22,7 +22,7 @@ void init_timer()
 
     // Send the frequency divisor.
     out(I86_PIT_REG_COUNTER0, (uint8_t) (divisor & 0xFF));
-    out(I86_PIT_REG_COUNTER0, (uint8_t) (divisor >> 8 & 0xFF));
+    out(I86_PIT_REG_COUNTER0, (uint8_t) ( (divisor >> 8) & 0xFF ));
 
     time = 0;
 }

@@ -8,6 +8,8 @@
 #define N_BUS 256
 #define DEVICE_PER_BUS 32
 
+#define MAX_DEVICES 1024
+
 typedef struct 
 {
     uint8_t bus;
@@ -60,7 +62,7 @@ typedef struct
     uint8_t max_latency;
 } pci_header0_t;
 
-
+pci_common_t get_device(size_t index);
 uint16_t pci_read_word(uint8_t bus, uint8_t slot, uint8_t func, uint8_t offset);
 
 uint16_t pci_read_vendor(uint8_t bus, uint8_t slot, uint8_t func);

@@ -3,8 +3,13 @@
 #include "../include/console/console.h"
 
 // TODO: make dynamic
-pci_common_t device_list[1024];
+pci_common_t device_list[MAX_DEVICES];
 pci_common_t *list_ptr = device_list;
+
+pci_common_t get_device(size_t index)
+{
+    return device_list[index];
+}
 
 uint16_t pci_read_word(uint8_t bus, uint8_t slot, uint8_t func, uint8_t offset)
 {

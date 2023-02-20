@@ -10,6 +10,7 @@
 #include "include/console/console.h"
 #include "include/memory/kmalloc.h"
 #include "include/drivers/pci.h"
+#include "include/drivers/ata.h"
 
 void scrn_test();
 
@@ -39,6 +40,7 @@ void kernel_main()
     );
 
     pci_check_all_busses();
+    init_ata();
     init_keyboard();
     kprintch('\n');
 
