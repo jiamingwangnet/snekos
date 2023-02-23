@@ -8,18 +8,7 @@ uint8_t ide_buffer[2048] = {0};
 volatile static uint8_t irq_invoked = 0;
 static uint8_t atapi_packet[12] = {0xA8, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
 
-struct ide_device 
-{
-    uint8_t reseved;        // 0 or 1
-    uint8_t channel;        // 0 primary channel, 1 secondary channel
-    uint8_t drive;          // 0 master drive, 1 slave drive
-    uint16_t type;          // 0 ata, 1 atapi
-    uint16_t signature;     // drive signature
-    uint16_t capabilities;  // features
-    uint32_t cmdSets;       // supported command sets
-    uint32_t size;          // size in sectors (iso file size * 2 KiB)
-    uint8_t model[41];      // model as string
-} ide_devices[4];
+struct ide_device ide_devices[4];
 
 struct ide_channel {
     uint16_t base;
@@ -183,7 +172,7 @@ void ide_init(uint32_t bar0, uint32_t bar1, uint32_t bar2, uint32_t bar3, uint32
         for(j = 0; j < 2; j++)
         {
             uint8_t err = 0, type = IDE_ATA, status;
-            ide_devices[count].reseved = 0; // assuming no drive
+            ide_devices[count].reserved = 0; // assuming no drive
             
             ide_write(i, ATA_REG_HDDEVSEL, 0xA0 | (j << 4)); // select drive
             wait_ticks(1);
@@ -221,7 +210,7 @@ void ide_init(uint32_t bar0, uint32_t bar1, uint32_t bar2, uint32_t bar3, uint32
             ide_read_buffer(i, ATA_REG_DATA, (uint32_t*)ide_buffer, 128);
 
             // read device params
-            ide_devices[count].reseved = 1;
+            ide_devices[count].reserved = 1;
             ide_devices[count].type = type;
             ide_devices[count].channel = i;
             ide_devices[count].drive = j;
@@ -251,7 +240,7 @@ void ide_init(uint32_t bar0, uint32_t bar1, uint32_t bar2, uint32_t bar3, uint32
         // print devices
         for (i = 0; i < 4; i++)
         {
-            if(ide_devices[i].reseved == 1)
+            if(ide_devices[i].reserved == 1)
             {
                 size_t size = ide_devices[i].size / 2;
 
@@ -290,4 +279,135 @@ void ide_init(uint32_t bar0, uint32_t bar1, uint32_t bar2, uint32_t bar3, uint32
             }
         }
     }
+}
+
+// direction 0: read, 1: write                                  lba is sector????
+uint8_t ide_ata_access(uint8_t direction, uint8_t drive, uint32_t lba, uint8_t numsects, uint16_t selector, uint64_t edi) //https://github.com/encounter/osdev/blob/master/kernel/fatfs/diskio.c
+{
+    uint8_t lba_mode /* 0 CHS, 1 LBA28, 2 LBA48 */, dma /* 0 no dma, 1 dma */, cmd;
+    uint8_t lba_io[6];
+    uint32_t channel = ide_devices[drive].channel;
+    uint32_t slavebit = ide_devices[drive].drive;
+    uint32_t bus = channels[channel].base;
+    uint32_t words = 256;
+    uint16_t cyl, i;
+    uint8_t head, sect, err;
+
+    ide_write(channel, ATA_REG_CONTROL, channels[channel].no_int = (irq_invoked = 0x0) + 0x02);
+
+    /*
+        if No LBA support:
+            use CHS
+        else if LBA Sector address > 0x0FFFFFFF
+            use LBA48
+        else
+            use LBA28
+    */
+
+    // select from LBA28, LBA48 or CHS
+    if (lba >= 0x10000000)
+    {
+        // LBA48
+        lba_mode = 2;
+        lba_io[0] = (lba & 0x000000FF) >> 0;
+        lba_io[1] = (lba & 0x0000FF00) >> 8;
+        lba_io[2] = (lba & 0x00FF0000) >> 16;
+        lba_io[3] = (lba & 0xFF000000) >> 24;
+        lba_io[4] = 0; // LBA28 is a integer, 32bits are enough to access 2TB.
+        lba_io[5] = 0;
+        head      = 0; // Lower 4bits of HDDEVSEL are not used
+    } 
+    else if (ide_devices[drive].capabilities & 0x200) // drive supports LBA
+    {
+        // LBA28
+        lba_mode = 1;
+        lba_io[0] = (lba & 0x000000FF) >> 0;
+        lba_io[1] = (lba & 0x0000FF00) >> 8;
+        lba_io[2] = (lba & 0x00FF0000) >> 16;
+        lba_io[3] = 0; // registers not used
+        lba_io[4] = 0;
+        lba_io[5] = 0;
+        head      = (lba & 0x0F000000) >> 24;
+    }
+    else
+    {
+        // CHS:
+        lba_mode = 0;
+        sect = (lba % 63) + 1;
+        cyl = (lba + 1 - sect) / (16 * 63);
+        lba_io[0] = sect;
+        lba_io[1] = (cyl >> 0) & 0xFF;
+        lba_io[2] = (cyl >> 8) & 0xFF;
+        lba_io[3] = 0;
+        lba_io[4] = 0;
+        lba_io[5] = 0;
+        head      = (lba + 1 - sect) % (16 * 63) / 63; // header number is written to DDEVSEL for lower 4bits
+    }
+
+    dma = 0; // dont support dma
+
+    // wait until not busy
+    while(ide_read(channel, ATA_REG_STATUS) & ATA_SR_BSY);
+
+    if (lba_mode == 0)
+        ide_write(channel, ATA_REG_HDDEVSEL, 0xA0 | (slavebit << 4) | head);
+    else
+        ide_write(channel, ATA_REG_HDDEVSEL, 0xE0 | (slavebit << 4) | head);
+    
+    // write params
+    if (lba_mode == 2)
+    {
+        ide_write(channel, ATA_REG_SECCOUNT1, 0);
+        ide_write(channel, ATA_REG_LBA3, lba_io[3]);
+        ide_write(channel, ATA_REG_LBA4, lba_io[4]);
+        ide_write(channel, ATA_REG_LBA5, lba_io[5]);
+    }
+    ide_write(channel, ATA_REG_SECCOUNT0, numsects);
+    ide_write(channel, ATA_REG_LBA0, lba_io[0]);
+    ide_write(channel, ATA_REG_LBA1, lba_io[1]);
+    ide_write(channel, ATA_REG_LBA2, lba_io[2]);
+
+    if (lba_mode == 0 && dma == 0 && direction == 0) cmd = ATA_CMD_READ_PIO;
+    if (lba_mode == 1 && dma == 0 && direction == 0) cmd = ATA_CMD_READ_PIO;   
+    if (lba_mode == 2 && dma == 0 && direction == 0) cmd = ATA_CMD_READ_PIO_EXT;   
+    if (lba_mode == 0 && dma == 1 && direction == 0) cmd = ATA_CMD_READ_DMA;
+    if (lba_mode == 1 && dma == 1 && direction == 0) cmd = ATA_CMD_READ_DMA;
+    if (lba_mode == 2 && dma == 1 && direction == 0) cmd = ATA_CMD_READ_DMA_EXT;
+    if (lba_mode == 0 && dma == 0 && direction == 1) cmd = ATA_CMD_WRITE_PIO;
+    if (lba_mode == 1 && dma == 0 && direction == 1) cmd = ATA_CMD_WRITE_PIO;
+    if (lba_mode == 2 && dma == 0 && direction == 1) cmd = ATA_CMD_WRITE_PIO_EXT;
+    if (lba_mode == 0 && dma == 1 && direction == 1) cmd = ATA_CMD_WRITE_DMA;
+    if (lba_mode == 1 && dma == 1 && direction == 1) cmd = ATA_CMD_WRITE_DMA;
+    if (lba_mode == 2 && dma == 1 && direction == 1) cmd = ATA_CMD_WRITE_DMA_EXT;
+    ide_write(channel, ATA_REG_COMMAND, cmd); // send command
+
+    // dont handle dma because it is not supported
+    if (direction == 0)
+    {
+        // PIO Read
+        for (i = 0; i < numsects; i++)
+        {
+            if(err = ide_polling(channel, 1))
+                return err;
+            __asm__ volatile("rep insw" : : "c"(words), "d"(bus), "D"(edi)); // reads 256 words or 512 bytes
+            edi += (words * 2);
+        }
+    }
+    else
+    {
+        // PIO write
+        for(i = 0; i < numsects; i++)
+        {
+            ide_polling(channel, 0);
+            __asm__ volatile("rep outsw" : : "c"(words), "d"(bus), "S"(edi));
+            edi += (words * 2);
+        }
+
+        ide_write(channel, ATA_REG_COMMAND, (char[]){
+            ATA_CMD_CACHE_FLUSH, ATA_CMD_CACHE_FLUSH, ATA_CMD_CACHE_FLUSH_EXT
+        }[lba_mode]);
+        ide_polling(channel, 0);
+    }
+
+    return 0;
 }

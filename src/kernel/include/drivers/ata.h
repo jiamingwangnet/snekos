@@ -89,6 +89,24 @@
 #define      ATA_READ      0x00
 #define      ATA_WRITE     0x01
 
+#define ATA_SECTOR_BYTES 512
+
+struct ide_device 
+{
+    uint8_t reserved;        // 0 or 1
+    uint8_t channel;        // 0 primary channel, 1 secondary channel
+    uint8_t drive;          // 0 master drive, 1 slave drive
+    uint16_t type;          // 0 ata, 1 atapi
+    uint16_t signature;     // drive signature
+    uint16_t capabilities;  // features
+    uint32_t cmdSets;       // supported command sets
+    uint32_t size;          // size in sectors (iso file size * 2 KiB)
+    uint8_t model[41];      // model as string
+};
+
+// gets the ide_devices from the ata.c declaration 
+extern struct ide_device ide_devices[4];
+
 /*
 Bar0: IO used by primary channel 
 Bar1: IO controls primary channel
@@ -103,5 +121,6 @@ void ide_write(uint8_t channel, uint8_t reg, uint8_t data);
 void ide_read_buffer(uint8_t channel, uint8_t reg, uint32_t *buf, uint8_t quads);
 uint8_t ide_polling(uint8_t channel, uint32_t adv_check);
 uint8_t ide_print_error(uint32_t drive, uint8_t err);
+uint8_t ide_ata_access(uint8_t direction, uint8_t drive, uint32_t lba, uint8_t numsects, uint16_t selector, uint64_t edi);
 
 void init_ata();

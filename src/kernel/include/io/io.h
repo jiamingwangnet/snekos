@@ -17,3 +17,10 @@ void outl(uint16_t port, uint32_t data);
 uint32_t inl(uint16_t port);
 // read into a buffer
 void insl(uint16_t port, uint32_t *buffer, uint32_t count);
+void outsl(uint16_t port, uint32_t *buffer, uint32_t count);
+
+void outw(uint16_t port, uint16_t data);
+uint16_t inw(uint16_t port);
+
+void insw(uint16_t port, uint16_t *buffer, uint32_t count);
+void outsw(uint16_t port, uint16_t *buffer, uint32_t count);

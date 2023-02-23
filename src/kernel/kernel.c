@@ -11,6 +11,7 @@
 #include "include/memory/kmalloc.h"
 #include "include/drivers/pci.h"
 #include "include/drivers/ata.h"
+#include "include/drivers/disk.h"
 
 void scrn_test();
 

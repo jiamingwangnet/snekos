@@ -6,6 +6,7 @@
 #include "../include/memory/kmalloc.h"
 #include "../include/drivers/pci.h"
 #include "apps/snake.h"
+#include "../include/drivers/disk.h"
 
 CREATE_COMMAND(hello, {
     kprintf("Hello There!\n");
@@ -432,6 +433,98 @@ CREATE_COMMAND(snake, {
     kprintch('\n');
 })
 
+CREATE_COMMAND(rdisk, {
+    if(argc != 2)
+    {
+        kprintf("Must have 2 arguments for sector and columns.\n");
+        return;
+    }
+
+    uint32_t sector = atoi(argv[0]);
+    size_t columns = atoi(argv[1]);
+
+    uint8_t buffer[ATA_SECTOR_BYTES];
+    if(disk_read(0, sector, 1, buffer))
+    {
+        kprintf("Disk read error.\n");
+        return;
+    }
+
+    for(size_t b = 0; b < ATA_SECTOR_BYTES; b++)
+    {
+        uint8_t byte = buffer[b];
+        char cbyte[3];
+        itoa(byte, cbyte, 16);
+
+        if(byte < 0x10)
+        {
+            cbyte[1] = cbyte[0];
+            cbyte[0] = '0';
+        }
+
+        kprintf(cbyte);
+        kprintch(' ');
+
+        if((b+1) % columns == 0)
+        {
+            kprintch('\n');
+        }
+    }
+    kprintch('\n');
+})
+
+CREATE_COMMAND(wdisk, {
+    if(argc != 3)
+    {
+        kprintf("Must have 3 arguments for the byte, sector and offset.\n");
+        return;
+    }
+
+    uint32_t sector = (uint32_t)atoi(argv[1]);
+    size_t offset = (size_t)atoi(argv[2]);
+    uint8_t byte = (uint8_t)atoi(argv[0]);
+
+    uint8_t buffer[ATA_SECTOR_BYTES];
+    if(disk_read(0, sector, 1, buffer))
+    {
+        kprintf("Disk read error.\n");
+        return;
+    }
+
+    buffer[offset] = byte;
+
+    if(disk_write(0, sector, 1, buffer))
+    {
+        kprintf("Disk write error.\n");
+        return;
+    }
+
+    kprintf("Successfully written byte to disk.\n");
+})
+
+CREATE_COMMAND(wipesect, {
+    if(argc != 2)
+    {
+        kprintf("Must specify sector to wipe and count.\n");
+        return;
+    }
+
+    uint8_t buffer[ATA_SECTOR_BYTES] = {0};
+    uint32_t sector = (uint32_t)atoi(argv[0]);
+    uint32_t count = (uint32_t)atoi(argv[1]);
+
+    for(uint32_t i = 0; i < count; i++)
+    {
+        if(disk_write(0, sector + i, 1, buffer))
+        {
+            kprintf("Disk write error.\n");
+            return;
+        }
+    }
+
+    kprintf("Successfully wiped sector.\n");
+})
+
 void init_commands()
 {
     ADDCMD(hello, 0)
@@ -454,4 +547,7 @@ void init_commands()
     ADDCMD(help, 17)
     ADDCMD(logpci, 18)
     ADDCMD(snake, 19)
+    ADDCMD(rdisk, 20)
+    ADDCMD(wdisk, 21)
+    ADDCMD(wipesect, 22)
 }
