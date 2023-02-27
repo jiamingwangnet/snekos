@@ -49,6 +49,6 @@ void init_framebuffer()
         SCRN_WIDTH = tagfb->common.framebuffer_width;
 
         map_framebuffer(tagfb->common.framebuffer_addr, 
-            tagfb->common.framebuffer_width * tagfb->common.framebuffer_height * tagfb->common.framebuffer_bpp);
+            tagfb->common.framebuffer_width * tagfb->common.framebuffer_height * (tagfb->common.framebuffer_bpp / 8));
     }
 }
