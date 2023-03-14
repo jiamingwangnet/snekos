@@ -97,15 +97,15 @@ void pci_check_function(uint8_t bus, uint8_t device, uint8_t func)
         .command = pci_read_word(bus, device, func, 4),
         .status = pci_read_word(bus, device, func, 6),
 
-        .revision_id = pci_read_word(bus, device, func, 8) & 0xff,
-        .prog_if = (pci_read_word(bus, device, func, 8) & 0xff00) >> 8,
+        .revision_id = LOWER_BYTE(pci_read_word(bus, device, func, 8) ),
+        .prog_if = UPPER_BYTE(pci_read_word(bus, device, func, 8)),
         .subclass = subclass,
         .class_code = class,
 
-        .cache_line_size = pci_read_word(bus, device, func, 12) & 0xff,
-        .latency_timer = (pci_read_word(bus, device, func, 12) & 0xff00) >> 8,
-        .header_type = pci_read_word(bus, device, func, 14) & 0xff,
-        .bist = (pci_read_word(bus, device, func, 14) & 0xff00) >> 8
+        .cache_line_size = LOWER_BYTE(pci_read_word(bus, device, func, 12)),
+        .latency_timer = UPPER_BYTE(pci_read_word(bus, device, func, 12)),
+        .header_type = LOWER_BYTE(pci_read_word(bus, device, func, 14)),
+        .bist = UPPER_BYTE(pci_read_word(bus, device, func, 14))
     };
 
     if(class == 0x6 && subclass == 0x4)
@@ -145,6 +145,34 @@ pci_common_t *pci_get_device_list()
 pci_common_t *pci_get_device_end()
 {
     return list_ptr;
+}
+
+pci_header0_t pci_get_bars(pci_common_t device)
+{
+    uint8_t bus = device.location.bus, dev = device.location.device, func = device.location.function;
+    pci_header0_t bars = (pci_header0_t){
+        .bar0 = (pci_read_word(bus, dev, func, 18) << 16) | pci_read_word(bus, dev, func, 16),
+        .bar1 = (pci_read_word(bus, dev, func, 22) << 16) | pci_read_word(bus, dev, func, 20),
+        .bar2 = (pci_read_word(bus, dev, func, 26) << 16) | pci_read_word(bus, dev, func, 24),
+        .bar3 = (pci_read_word(bus, dev, func, 30) << 16) | pci_read_word(bus, dev, func, 28),
+        .bar4 = (pci_read_word(bus, dev, func, 34) << 16) | pci_read_word(bus, dev, func, 32),
+        .bar5 = (pci_read_word(bus, dev, func, 38) << 16) | pci_read_word(bus, dev, func, 36),
+
+        .cardbus_cis_ptr = (pci_read_word(bus, dev, func, 42) << 16) | pci_read_word(bus, dev, func, 40),
+        .subsystem_vendor_id = pci_read_word(bus, dev, func, 0x2C),
+        .subsystem_id = pci_read_word(bus, dev, func, 0x2C + 4),
+
+        .ex_rom_addr = (pci_read_word(bus, dev, func, 0x32) << 16) | pci_read_word(bus, dev, func, 0x30),
+        .capabilities_ptr = LOWER_BYTE(pci_read_word(bus, dev, func, 0x34)),
+
+        .interrupt_line = LOWER_BYTE(pci_read_word(bus, dev, func, 0x3C)),
+        .interrupt_pin = UPPER_BYTE(pci_read_word(bus, dev, func, 0x3C)),
+
+        .min_grant = LOWER_BYTE(pci_read_word(bus, dev, func, 0x3C + 2)),
+        .max_latency = UPPER_BYTE(pci_read_word(bus, dev, func, 0x3C + 2))
+    };
+
+    return bars;
 }
 
 const char *pci_get_device_name(uint8_t class, uint8_t subclass)

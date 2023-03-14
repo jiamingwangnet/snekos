@@ -9,6 +9,9 @@
 #define DEVICE_PER_BUS 32
 
 #define MAX_DEVICES 1024
+#define PCI_COMBINE_CLASS(class, subclass) (((uint16_t)class << 8) | (uint16_t)subclass)
+#define LOWER_BYTE(word) word & 0xff
+#define UPPER_BYTE(word) (word & 0xff00) >> 8
 
 typedef struct 
 {
@@ -82,3 +85,5 @@ void pci_check_function(uint8_t bus, uint8_t device, uint8_t func);
 
 pci_common_t *pci_get_device_list();
 pci_common_t *pci_get_device_end();
+
+pci_header0_t pci_get_bars(pci_common_t device);

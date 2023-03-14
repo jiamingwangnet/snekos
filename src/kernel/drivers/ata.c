@@ -25,26 +25,20 @@ void init_ata()
     for(size_t i = 0; i < MAX_DEVICES; i++)
     {
         device = get_device(i);
-        if( (((uint16_t)device.class_code << 8) + (uint16_t)device.subclass) == 0x0101 )
+        if( PCI_COMBINE_CLASS(device.class_code, device.subclass) == 0x0101 )
             break;
     }
 
-    if( (((uint16_t)device.class_code << 8) + (uint16_t)device.subclass) != 0x0101 )
+    if( PCI_COMBINE_CLASS(device.class_code, device.subclass) != 0x0101 )
     {
         kprintf("ATA Error: No IDE Controller available.\n");
         return;
     }
-    uint8_t bus = device.location.bus, dev = device.location.device, func = device.location.function;
 
     // read bar TODO: use pci_header0_t header
-    uint32_t bar0, bar1, bar2, bar3, bar4;
-    bar0 = (pci_read_word(bus, dev, func, 18) << 16) | pci_read_word(bus, dev, func, 16);
-    bar1 = (pci_read_word(bus, dev, func, 22) << 16) | pci_read_word(bus, dev, func, 20);
-    bar2 = (pci_read_word(bus, dev, func, 26) << 16) | pci_read_word(bus, dev, func, 24);
-    bar3 = (pci_read_word(bus, dev, func, 30) << 16) | pci_read_word(bus, dev, func, 28);
-    bar4 = (pci_read_word(bus, dev, func, 34) << 16) | pci_read_word(bus, dev, func, 32);
+    pci_header0_t bars = pci_get_bars(device);
 
-    ide_init(bar0, bar1, bar2, bar3 , bar4);
+    ide_init(bars.bar0, bars.bar1, bars.bar2, bars.bar3, bars.bar4);
 
     kprintf("ATA init finished.\n");
 }
@@ -237,11 +231,13 @@ void ide_init(uint32_t bar0, uint32_t bar1, uint32_t bar2, uint32_t bar3, uint32
             count++;
         }
 
+        int devs = 0;
         // print devices
         for (i = 0; i < 4; i++)
         {
             if(ide_devices[i].reserved == 1)
             {
+                devs ++;
                 size_t size = ide_devices[i].size / 2;
 
                 kprintf(" Found ");
@@ -278,6 +274,8 @@ void ide_init(uint32_t bar0, uint32_t bar1, uint32_t bar2, uint32_t bar3, uint32
                 kprintch('\n');
             }
         }
+
+        if(devs == 0) kprintf("No ATA drives found.\n");
     }
 }
 
