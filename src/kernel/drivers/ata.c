@@ -9,6 +9,7 @@ volatile static uint8_t irq_invoked = 0;
 static uint8_t atapi_packet[12] = {0xA8, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
 
 struct ide_device ide_devices[4];
+static size_t ndrives = 0;
 
 struct ide_channel {
     uint16_t base;
@@ -40,7 +41,7 @@ void init_ata()
 
     ide_init(bars.bar0, bars.bar1, bars.bar2, bars.bar3, bars.bar4);
 
-    kprintf("ATA init finished.\n");
+    kprintf("ATA init finished. %d drive(s) found.\n", ndrives);
 }
 
 uint8_t ide_read(uint8_t channel, uint8_t reg)
@@ -229,6 +230,7 @@ void ide_init(uint32_t bar0, uint32_t bar1, uint32_t bar2, uint32_t bar3, uint32
             ide_devices[count].model[40] = 0; // add null terminator
 
             count++;
+            ndrives++;
         }
 
         int devs = 0;
