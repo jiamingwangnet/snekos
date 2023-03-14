@@ -522,7 +522,45 @@ CREATE_COMMAND(wipesect, {
         }
     }
 
-    kprintf("Successfully wiped sector.\n");
+    kprintf("Successfully wiped sector(s).\n");
+})
+
+CREATE_COMMAND(wipedisk, {
+    uint8_t buffer[ATA_SECTOR_BYTES] = {0};
+    size_t size = 0;
+
+    if(get_nports() > 0) // prioritise ahci over ide
+    {
+        HBA_PORT *port = active_ports()[0].port;
+        device_info_t device;
+        ahci_identify(port, &device);
+
+        size = device.size;
+    }
+    else if(ide_devices[0].reserved)
+    {
+       size = ide_devices[0].size;
+    }
+    else
+    {
+        kprintf("No drives.\n");
+        return;
+    }
+
+    kprintf("Wipe started...\n");
+
+    uint64_t start_time = get_time();
+    for(uint32_t i = 0; i < size; i++)
+    {
+        if(disk_write(0, i, 1, buffer))
+        {
+            kprintf("Disk write error on sector %d.\n", i);
+            return;
+        }
+    }
+    uint64_t end_time = get_time();
+
+    kprintf("Successfully wiped %d sector(s) (%d KiB) in %d ms.\n", size, size / 2, end_time - start_time);
 })
 
 void init_commands()
@@ -550,4 +588,5 @@ void init_commands()
     ADDCMD(rdisk, 20)
     ADDCMD(wdisk, 21)
     ADDCMD(wipesect, 22)
+    ADDCMD(wipedisk, 23)
 }
