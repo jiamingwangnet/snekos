@@ -8,6 +8,11 @@ uint32_t SCRN_PITCH;
 
 void init_graphics(void)
 {
+    // temporary fix for overwriting multiboot2 stuff
+    framebuffer_tag *fbptr = (framebuffer_tag*)kmalloc(sizeof(framebuffer_tag));
+    memcpy((void*)fbptr, (void*)tagfb, sizeof(framebuffer_tag));
+    tagfb = fbptr;
+
     B_BUFFER = (uint32_t*)kmalloc(SCRN_WIDTH * SCRN_HEIGHT * sizeof(uint32_t));
     memset((void*)B_BUFFER, 0, SCRN_WIDTH * SCRN_HEIGHT * sizeof(uint32_t));
     SCRN_SIZE = SCRN_HEIGHT * SCRN_WIDTH * sizeof(uint32_t);
