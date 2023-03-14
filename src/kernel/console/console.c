@@ -3,6 +3,7 @@
 #include "../include/stdlib/stdlib.h"
 #include "../include/memory/kmalloc.h"
 #include "../include/console/commands.h"
+#include <stdarg.h>
 
 uint32_t foreground = 0xffffff;
 uint32_t background = 0x000000;
@@ -270,10 +271,49 @@ void kprintch(char c)
     update_console = true;
 }
 
-void kprintf(const char *str)
+void kprintf(const char *str, ...) // only allows specifier character
 {
+    va_list args;
+    va_start(args, strlen(str));
+
     while(*str)
-        kprintch(*str++);
+    {
+        if(*str == '%' && str[1] != '\0')
+        {
+            switch(str[1])
+            {
+                case 'd':
+                {
+                    int num = va_arg(args, int);
+                    char cnum[16];
+                    char *pnum = cnum;
+
+                    itoa(num, cnum, 10);
+
+                    while(*pnum) kprintch(*pnum++);
+                    break;
+                }
+                case 'x':
+                {
+                    int num = va_arg(args, int);
+                    char cnum[16];
+                    char *pnum = cnum;
+
+                    itoa(num, cnum, 16);
+
+                    while(*pnum) kprintch(*pnum++);
+                    break;
+                }
+            }
+            str+=2;
+        }
+        else
+        {
+            kprintch(*str++);
+        }
+    }
+
+    va_end(args);
 }
 
 void draw_cursor(uint32_t col, uint32_t row)
