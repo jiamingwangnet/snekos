@@ -3,6 +3,8 @@
 #include "../stdlib/types.h"
 
 #define KERNEL_VOFFSET 0xFFFFFFFF80000000
+#define PAGE_ALIGN(addr) (addr & 0xFFC00000)
+#define ALIGN_ADDR(addr, bound) ((addr + bound - 1) & ~(bound - 1))
 
 void* phys_to_virt(void* addr);
 void* virt_to_phys(void* addr);

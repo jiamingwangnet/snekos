@@ -11,6 +11,7 @@
 #include "include/memory/kmalloc.h"
 #include "include/drivers/pci.h"
 #include "include/drivers/ata.h"
+#include "include/drivers/ahci.h"
 #include "include/drivers/disk.h"
 
 void scrn_test();
@@ -41,7 +42,14 @@ void kernel_main()
     );
 
     pci_check_all_busses();
+    kprintch('\n');
+
+    init_ahci();
+    kprintch('\n');
+    
     init_ata();
+    kprintch('\n');
+    
     init_keyboard();
     kprintch('\n');
 
