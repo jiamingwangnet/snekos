@@ -23,6 +23,8 @@ void kernel_main()
     init_serial();
     init_idt();
 
+    init_keyboard(); // irq does not get fired if i type before this is initalised
+
     init_timer();
     init_heap();
 
@@ -48,9 +50,6 @@ void kernel_main()
     kprintch('\n');
     
     init_ata();
-    kprintch('\n');
-    
-    init_keyboard();
     kprintch('\n');
 
     enable_input();
