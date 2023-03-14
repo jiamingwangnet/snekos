@@ -242,7 +242,6 @@ void enter()
 void console_keyboard(Key_Info info)
 {
     // other interrupts do not work here (PIT will not fire)
-
     if(!input_mode) return;
 
     if(!info.release && !info.modifier)
@@ -304,6 +303,12 @@ void kprintf(const char *str, ...) // only allows specifier character
                     while(*pnum) kprintch(*pnum++);
                     break;
                 }
+                case 's':
+                {
+                    const char *str = va_arg(args, const char*);
+                    while(*str) kprintch(*str++);
+                    break;
+                }
             }
             str+=2;
         }
@@ -314,6 +319,13 @@ void kprintf(const char *str, ...) // only allows specifier character
     }
 
     va_end(args);
+}
+
+void goto_line_start()
+{
+    if(mem_end == con_memory) return;
+    mem_end--;
+    while(*(mem_end-1) != '\n') mem_end--;
 }
 
 void draw_cursor(uint32_t col, uint32_t row)
