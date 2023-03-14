@@ -33,7 +33,7 @@ void isr_handler(reg_status_t status)
     char c_id[15];
     itoa(status.interrupt_number, c_id, 10);
     char c_code[15];
-    itoa(status.error_code, c_code, 10);
+    itoa(status.error_code, c_code, 2);
 
     char c_rax[15];
     itoa(status.rax, c_rax, 16);

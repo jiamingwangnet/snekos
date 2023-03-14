@@ -1,6 +1,11 @@
 #include "../include/multiboot/multiboot_init.h"
 #include "../include/memory/memory.h"
 
+#ifdef DEBUG_LOG
+#include "../include/io/serial.h"
+#include "../include/stdlib/stdlib.h"
+#endif
+
 extern uint64_t multiboot_info;
 extern framebuffer_tag* tagfb;
 
@@ -16,6 +21,15 @@ inline uint64_t get_info_addr()
 
 void init_multiboot()
 {
+    #ifdef DEBUG_LOG
+    serial_str("Multiboot Addr: 0x");
+    char caddr[16];
+    uint32_t tagaddr = (uint32_t)&multiboot_info;
+    itoa(tagaddr >= 0x80000000 ? tagaddr - 0x80000000 : tagaddr, caddr, 16);
+    serial_str(caddr);
+    serial_char('\n');
+    #endif
+
     uint64_t addr = get_info_addr();
     for(LOOP_TAGS(tag, addr))
     {
