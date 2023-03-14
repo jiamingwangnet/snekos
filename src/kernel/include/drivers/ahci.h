@@ -1,6 +1,7 @@
 #pragma once
 
 #include "../stdlib/types.h"
+#include "ata.h"
 
 #define	SATA_SIG_ATA	0x00000101	// SATA drive
 #define	SATA_SIG_ATAPI	0xEB140101	// SATAPI drive
@@ -298,6 +299,18 @@ typedef struct
     int type;
 } port_info_t;
 
+typedef struct
+{
+    uint16_t signature;     // drive signature
+    uint16_t capabilities;  // features
+    uint32_t cmdSets;       // supported command sets
+    uint32_t size;          // size in sectors (iso file size * 2 KiB)
+    uint8_t model[41];      // model as string
+} device_info_t;
+
+size_t get_nports();
+port_info_t *active_ports();
+
 void init_ahci();
 int check_type(HBA_PORT *port);
 void probe_ports(HBA_MEM *abar);
@@ -305,4 +318,8 @@ void port_rebase(HBA_PORT *port, size_t portno);
 void start_cmd(HBA_PORT *port);
 void stop_cmd(HBA_PORT *port);
 
+bool send_command(HBA_PORT *port, HBA_PRDT_ENTRY *prdt, uint16_t prdtl, FIS_REG_H2D *cmdfis);
+
+bool ahci_identify(HBA_PORT *port, device_info_t *device);
 bool ahci_read(HBA_PORT *port, uint64_t sector, uint32_t nsectors, uint8_t *buf);
+bool ahci_write(HBA_PORT *port, uint64_t sector, uint32_t nsectors, uint8_t *buf);
