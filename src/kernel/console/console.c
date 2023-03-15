@@ -3,10 +3,14 @@
 #include "../include/stdlib/stdlib.h"
 #include "../include/memory/kmalloc.h"
 #include "../include/console/commands.h"
+#include "../include/memory/memory.h"
 #include <stdarg.h>
 
-uint32_t foreground = 0xffffff;
-uint32_t background = 0x000000;
+static uint32_t foreground = 0xffffff;
+static uint32_t background = 0x000000;
+
+uint32_t DEFAULT_FG = 0xffffff;
+uint32_t DEFAULT_BG = 0x000000;
 
 uint32_t x = 0;
 uint32_t y = 0;
@@ -17,8 +21,8 @@ uint32_t max_cols = 120;
 const uint32_t line_pad = 5;
 const uint32_t col_pad = 1;
 
-const char* cmdtxt = "| KERNEL CMD :> ";
-bool input_mode = false;
+static const char* cmdtxt = "| KERNEL CMD :> ";
+static bool input_mode = false;
 static bool update_console = false;
 
 struct pending_command_t {
@@ -26,18 +30,22 @@ struct pending_command_t {
     int argc;
     char **argv;
 } pending_command;
-bool hasCommand = false;
+static bool hasCommand = false;
 
 #define INPUT_BUFFER_SIZE 512
-char input_buffer[INPUT_BUFFER_SIZE];
-char *buffer_ptr = input_buffer;
+static char input_buffer[INPUT_BUFFER_SIZE];
+static char *buffer_ptr = input_buffer;
 
 #define TAB_WDITH 4
 
 // stores the terminal text
-char *con_memory;
-char *mem_end;
-size_t con_memory_size = 0x200000; // TODO: implement this fully, this caused a lot of errors
+static char *con_memory;
+static char *mem_end;
+static size_t con_memory_size = 0x200000; // TODO: implement this fully, this caused a lot of errors
+
+// TODO: store color and character together in a single uint32_t: char * 0x1000000 + color   example: char: 0x64 color: 0x34e832 together: 0x6434e832
+static uint32_t *color_memory; // TODO: make more memory efficient solution
+static uint32_t *cmem_end;
 
 inline void expand_cmem()
 {
@@ -58,9 +66,11 @@ void clear()
 {
     con_memory[0] = 0;
     con_memory[1] = 0;
+    
     // while(*tmp)
     //     *tmp++ = 0;
     mem_end = con_memory;
+    cmem_end = color_memory;
 }
 
 void init_console(uint32_t sx, uint32_t sy, uint32_t fg, uint32_t bg)
@@ -69,14 +79,20 @@ void init_console(uint32_t sx, uint32_t sy, uint32_t fg, uint32_t bg)
     y = sy;
     foreground = fg;
     background = bg;
+
+    DEFAULT_FG = fg;
+    DEFAULT_BG = bg;
+
     attach_keyboard(console_keyboard);
 
     fill_screen(background);
 
     con_memory = (char*)kmalloc(sizeof(char) * con_memory_size);
+    color_memory = (uint32_t*)kmalloc(sizeof(uint32_t) * con_memory_size);
 
     mem_end = con_memory;
-
+    cmem_end = color_memory;
+    
     init_commands();
 
     // fit console
@@ -85,6 +101,11 @@ void init_console(uint32_t sx, uint32_t sy, uint32_t fg, uint32_t bg)
     max_rows = (tagfb->common.framebuffer_height - y) / (font->charsize + line_pad) - 1;
 
     console_loop();
+}
+
+void set_color(uint32_t color)
+{
+    foreground = color;
 }
 
 // free memory
@@ -121,6 +142,7 @@ void backspace()
     // PSF1_font* font = get_font();
     decrease_buffer();
     *--mem_end = 0;
+    *--cmem_end = 0;
     // draw_rect(col * (PSF1_WIDTH + col_pad) + x, row * (font->charsize + line_pad) + y, PSF1_WIDTH + col_pad, font->charsize + line_pad, background);
 }
 
@@ -232,7 +254,7 @@ void enter()
     // PSF1_font* font = get_font();
     // clear cursor
     // draw_rect(col * (PSF1_WIDTH + col_pad) + x, row * (font->charsize + line_pad) + y, PSF1_WIDTH + col_pad, font->charsize + line_pad, background);
-    kprintch('\n');
+    kprintf("\n");
     input_mode = false;
 
     // run command
@@ -246,7 +268,8 @@ void console_keyboard(Key_Info info)
 
     if(!info.release && !info.modifier)
     {
-        kprintch(info.key);
+        const char keystr[2] = {info.key, 0};
+        kprintf(keystr);
         append_buffer(info.key);
     }
     else if(!info.release && info.modifier && info.key == ENTER)
@@ -267,6 +290,7 @@ void console_keyboard(Key_Info info)
 void kprintch(char c)
 {
     *mem_end++ = c;
+    *cmem_end++ = foreground;
     update_console = true;
 }
 
@@ -297,7 +321,6 @@ void kprintf(const char *str, ...) // only allows specifier character
                     int num = va_arg(args, int);
                     char cnum[16];
                     char *pnum = cnum;
-
                     itoa(num, cnum, 16);
 
                     while(*pnum) kprintch(*pnum++);
@@ -307,6 +330,12 @@ void kprintf(const char *str, ...) // only allows specifier character
                 {
                     const char *str = va_arg(args, const char*);
                     while(*str) kprintch(*str++);
+                    break;
+                }
+                case 'h': // custom color formatting (h is for hue)
+                {
+                    uint32_t color = va_arg(args, uint32_t);
+                    set_color(color);
                     break;
                 }
             }
@@ -325,7 +354,12 @@ void goto_line_start()
 {
     if(mem_end == con_memory) return;
     mem_end--;
-    while(*(mem_end-1) != '\n') mem_end--;
+    cmem_end--;
+    while(*(mem_end-1) != '\n') 
+    {
+        mem_end--;
+        cmem_end--;
+    }
 }
 
 void draw_cursor(uint32_t col, uint32_t row)
@@ -346,6 +380,8 @@ void console_loop()
     
     // count back rows, ignore column wrap
     char *c = mem_end - 1;
+    uint32_t *cl = cmem_end - 1;
+
     uint32_t row_count = 0;
     while(c != con_memory - 1)
     {
@@ -356,16 +392,21 @@ void console_loop()
                 break;
         }
         c--;
+        cl--;
     }
     c++;
+    cl++;
+
     // handle column wrap here by rewriting lines
     char *start = c;
-    for(; c != mem_end; c++)
+    uint32_t *cstart = cl;
+
+    for(; c != mem_end; c++, cl++)
     {
         if(*c == '\t')
             col += TAB_WDITH;
         else
-            draw_char(col * (PSF1_WIDTH + col_pad) + x, row * (font->charsize + line_pad) + y, foreground, background, *c);
+            draw_char(col * (PSF1_WIDTH + col_pad) + x, row * (font->charsize + line_pad) + y, *cl, background, *c);
 
         col++;
 
@@ -382,9 +423,11 @@ void console_loop()
                 while(*start != '\n' && col_count != max_cols)
                 {
                     start++;
+                    cstart++;
                     col_count++;
                 }
                 c = ++start;
+                cl = ++cstart;
                 row = 0;
             }
         }

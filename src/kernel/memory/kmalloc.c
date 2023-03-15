@@ -3,6 +3,8 @@
 mem_block_t *heap_start;
 mem_block_t *heap_end;
 
+// const uint8_t heap_start_addr[0x2000000];
+
 void init_heap()
 {
     heap_start = (mem_block_t*)((uint64_t)&_kernel_end + PADDING);
@@ -76,6 +78,9 @@ void expand_heap(size_t size)
     size_t required_pages = size / PAGE_SIZE + 1;
 
     // TODO:if heap end is out of the mapped memory, map more pages
+    // char addr[16];
+    // itoa(real_heap_end, addr, 16);
+    // serial_str(addr);
 
     mem_block_t *new_block = (mem_block_t*)real_heap_end;
     new_block->prev = heap_end;

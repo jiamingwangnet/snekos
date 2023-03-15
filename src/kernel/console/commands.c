@@ -15,7 +15,7 @@ CREATE_COMMAND(hello, {
 CREATE_COMMAND(add, {
     if(argc < 2)
     {
-        kprintf("Error: requires at least 2 numbers\n");
+        kprintf("%hError: requires at least 2 numbers%h\n", RED, DEFAULT_FG);
         return;
     }
 
@@ -25,17 +25,13 @@ CREATE_COMMAND(add, {
         sum += atoi(argv[i]);
     }
 
-    char res[16];
-    itoa(sum, res, 10);
-    
-    kprintf(res);
-    kprintch('\n');
+    kprintf("%d\n", sum);
 })
 
 CREATE_COMMAND(sub, {
     if(argc < 2)
     {
-        kprintf("Error: requires at least 2 numbers\n");
+        kprintf("%hError: requires at least 2 numbers%h\n", RED, DEFAULT_FG);
         return;
     }
 
@@ -45,17 +41,13 @@ CREATE_COMMAND(sub, {
         sum -= atoi(argv[i]);
     }
 
-    char res[16];
-    itoa(sum, res, 10);
-    
-    kprintf(res);
-    kprintch('\n');
+    kprintf("%d\n", sum);
 })
 
 CREATE_COMMAND(mul, {
     if(argc < 2)
     {
-        kprintf("Error: requires at least 2 numbers\n");
+        kprintf("%hError: requires at least 2 numbers%h\n", RED, DEFAULT_FG);
         return;
     }
 
@@ -65,17 +57,13 @@ CREATE_COMMAND(mul, {
         sum *= atoi(argv[i]);
     }
 
-    char res[16];
-    itoa(sum, res, 10);
-    
-    kprintf(res);
-    kprintch('\n');
+    kprintf("%d\n", sum);
 })
 
 CREATE_COMMAND(div, {
     if(argc < 2)
     {
-        kprintf("Error: requires at least 2 numbers\n");
+        kprintf("%hError: requires at least 2 numbers%h\n", RED, DEFAULT_FG);
         return;
     }
 
@@ -84,21 +72,16 @@ CREATE_COMMAND(div, {
     {
         sum /= atoi(argv[i]);
     }
-
-    char res[16];
-    itoa(sum, res, 10);
     
-    kprintf(res);
-    kprintch('\n');
+    kprintf("%d\n", sum);
 })
 
 CREATE_COMMAND(print, {
     for(int i = 0; i < argc; i++)
     {
-        kprintf(argv[i]);
-        kprintch(' ');
+        kprintf("%s ", argv[i]);
     }
-    kprintch('\n');
+    kprintf("\n");
 })
 
 extern uint32_t max_rows;
@@ -118,7 +101,7 @@ CREATE_COMMAND(setrow, {
         max_rows = size;
         return;
     }
-    kprintf("Row must be a number greater than 0 or \"fit\"\n");
+    kprintf("%hRow must be a number greater than 0 or \"fit\"%h\n", RED, DEFAULT_FG);
 })
 
 extern uint32_t max_cols;
@@ -137,44 +120,22 @@ CREATE_COMMAND(setcol, {
         max_cols = size;
         return;
     }
-    kprintf("Column must be a number greater than 0 or \"fit\"\n");
+    kprintf("%hColumn must be a number greater than 0 or \"fit\"%h\n", RED, DEFAULT_FG);
 })
 
 extern uint32_t* B_BUFFER;
 
 CREATE_COMMAND(scrninfo, {
-    char cwidth[16];
-    char cheight[16];
-    char cbpp[16];
-    char caddr[16];
-    char cbaddr[16];
-    itoa(tagfb->common.framebuffer_width, cwidth, 10);
-    itoa(tagfb->common.framebuffer_height, cheight, 10);
-    itoa(tagfb->common.framebuffer_bpp, cbpp, 10);
-    itoa(tagfb->common.framebuffer_addr, caddr, 16);
-    itoa((uint64_t)B_BUFFER - 0xffffffff80000000, cbaddr, 16);
-    
+    kprintf("%h----Screen Information----%h\n", DODGERBLUE, DEFAULT_FG);
 
-    kprintf("----Screen Information----\n");
-    kprintf("Framebuffer address: 0x");
-    kprintf(caddr);
-    kprintch('\n');
+    kprintf("Framebuffer address: %h0x%x%h\n", ORANGE, tagfb->common.framebuffer_addr, DEFAULT_FG);
+    kprintf("Backbuffer address: %h0x%x%h\n", ORANGE, (uint64_t)B_BUFFER - 0xffffffff80000000, DEFAULT_FG);
 
-    kprintf("Backbuffer address: 0x");
-    kprintf(cbaddr);
-    kprintch('\n');
+    kprintf("Width: %h%d\n%h", ORANGE, tagfb->common.framebuffer_width, DEFAULT_FG);
 
-    kprintf("Width: ");
-    kprintf(cwidth);
-    kprintch('\n');
+    kprintf("Height: %h%d\n%h", ORANGE, tagfb->common.framebuffer_height, DEFAULT_FG);
 
-    kprintf("Height: ");
-    kprintf(cheight);
-    kprintch('\n');
-
-    kprintf("BPP: ");
-    kprintf(cbpp);
-    kprintch('\n');
+    kprintf("BPP: %h%d\n%h", ORANGE, tagfb->common.framebuffer_bpp, DEFAULT_FG);
 })
 
 CREATE_COMMAND(checksse, {
@@ -188,9 +149,9 @@ CREATE_COMMAND(checksse, {
     );
     
     if(sse_enabled)
-        kprintf("SSE is available.\n");
+        kprintf("SSE %his%h available.\n", GREEN, DEFAULT_FG);
     else
-        kprintf("SSE not available.\n");
+        kprintf("SSE %hnot%h available.\n", RED, DEFAULT_FG);
 })
 
 CREATE_COMMAND(clear, {
@@ -200,7 +161,7 @@ CREATE_COMMAND(clear, {
 CREATE_COMMAND(memdump, { // TODO: change to 64bit
     if(argc != 3)
     {
-        kprintf("Error: memdump requires 3 arguments\n");
+        kprintf("%hError: memdump requires 3 arguments%h\n", RED, DEFAULT_FG);
         return;
     }
 
@@ -208,6 +169,7 @@ CREATE_COMMAND(memdump, { // TODO: change to 64bit
     size_t columns = atoi(argv[1]);
     uint32_t address = atoi(argv[2]);
 
+    set_color(ORANGE);
     for(size_t b = 0; b < bytes; b++)
     {
         uint8_t byte = *(uint8_t*)(address + b * sizeof(uint8_t));
@@ -221,28 +183,25 @@ CREATE_COMMAND(memdump, { // TODO: change to 64bit
         }
 
         kprintf(cbyte);
-        kprintch(' ');
+        kprintf(" ");;
 
         if((b+1) % columns == 0)
         {
-            kprintch('\n');
+            kprintf("\n");
         }
     }
-    kprintch('\n');
+    set_color(DEFAULT_FG);
+    kprintf("\n");
 })
 
 CREATE_COMMAND(timepit, {
-    char ctime[32];
-    itoa(get_time(), ctime, 10);
-    kprintf("The PIT time is: ");
-    kprintf(ctime);
-    kprintch('\n');
+    kprintf("The PIT time is: %h%d%h\n", ORANGE, get_time(), DEFAULT_FG);
 })
 
 CREATE_COMMAND(write, {
     if(argc != 3)
     {
-        kprintf("Must have 3 arguments: size, data, destination\n");
+        kprintf("%hMust have 3 arguments: size, data, destination%h\n", RED, DEFAULT_FG);
         return;
     }
 
@@ -254,63 +213,42 @@ CREATE_COMMAND(write, {
         *(uint32_t*)atoi(argv[2]) = (uint32_t)atoi(argv[1]);
     else
     {
-        kprintf("Must be a valid size below QWORD\n");
+        kprintf("%hMust be a valid size below QWORD%h\n", RED, DEFAULT_FG);
         return;
     }
 
-    char caddr16[16];
-    itoa(atoi(argv[2]), caddr16, 16);
-
-    kprintf("Data written to 0x");
-    kprintf(caddr16);
-    kprintch('\n');
+    kprintf("Data written to %h0x%x%h\n", ORANGE, atoi(argv[2]), DEFAULT_FG);
 })
 
 CREATE_COMMAND(malloc, {
     if(argc != 1)
     {
-        kprintf("Error: must have only 1 argument\n");
+        kprintf("%hError: must have only 1 argument%h\n", RED, DEFAULT_FG);
         return;
     }
 
     uint64_t addr = (uint64_t)kmalloc(atoi(argv[0])) - 0xffffffff80000000;
 
-    char caddr[16];
-    char caddr16[16];
-
-    itoa((uint32_t)addr, caddr, 10);
-    itoa((uint32_t)addr, caddr16, 16);
-
-    kprintf("Allocated memory at: ");
-    kprintf(caddr);
-    kprintf(" (0x");
-    kprintf(caddr16);
-    kprintf(")\n");
+    kprintf("Allocated memory at: %h%d%h (%h0x%x%h)\n", ORANGE, addr, DEFAULT_FG, ORANGE, addr, DEFAULT_FG);
 })
 
 CREATE_COMMAND(free, {
     if(argc != 1)
     {
-        kprintf("Error: must have only 1 argument\n");
+        kprintf("%hError: must have only 1 argument%h\n", RED, DEFAULT_FG);
         return;
     }
 
     void *addr = (void*)atoi(argv[0]);
     kfree(addr);
 
-    // TODO: add a conversion function
-    char caddr16[16];
-    itoa((uint32_t)addr, caddr16, 16);
-
-    kprintf("Freed memory at 0x");
-    kprintf(caddr16);
-    kprintch('\n');
+    kprintf("Freed memory at %h0x%x%h\n", ORANGE, addr, DEFAULT_FG);
 })
 
 CREATE_COMMAND(call, {
     if(argc != 1)
     {
-        kprintf("Error: must have only 1 argument\n");
+        kprintf("%hError: must have only 1 argument%h\n", RED, DEFAULT_FG);
         return;
     }
     
@@ -320,26 +258,68 @@ CREATE_COMMAND(call, {
 
 CREATE_COMMAND(help, {
     kprintf(
-        "hello\t                          Prints out \"Hello There!\".\n"
-        "add [nums ...]\t                 Adds the specified numbers together.\n"
-        "sub [nums ...]\t                 Subtracts from the first number.\n"
-        "mul [nums ...]\t                 Multiplies the specified numbers together.\n"
-        "div [nums ...]\t                 Divides the numbers.\n"
-        "print [str ...]\t                Prints the specified text.\n"
-        "setrow [row] | fit\t             Sets the console max rows to the specified number, \"fit\" adjusts the console to fit the screen.\n"
-        "setcol [col] | fit\t             Sets the console max columns to the specified number, \"fit\" adjusts the console to fit the screen.\n"
-        "scrninfo\t                       Prints information about the screen.\n"
-        "checksse\t                       Checks whether SSE is available.\n"
-        "clear\t                          Clears the console.\n"
-        "memdump [bytes] [col] [addr]\t   Dumps the memory at the specified address.\n"
-        "timepit\t                        Prints out the amount of time the Programmable Interrupt Timer has fired.\n"
-        "write [size] [data] [addr]\t     Writes the specified data to the address.\n"
-        "malloc [bytes]\t                 Allocates the specified size of memory and prints the address.\n"
-        "free [addr]\t                    Frees the allocated memory at the specified address.\n"
-        "call [addr]\t                    Calls the function at the specified address.\n"
-        "logpci [num]\t                   Logs all the PCI devices. The \"num\" argument specifies the number of devices to print.\n"
-        "snake\t                          Starts the snake game.\n"
-        "help\t                           Displays this help message.\n"
+        // BASELINE:                      |
+        "%hhello%h\t                          Prints out \"Hello There!\".\n"
+        "\n"
+        "%hadd%h [nums ...]%h\t                 Adds the specified numbers together.\n"
+        "%hsub %h[nums ...]%h\t                 Subtracts from the first number.\n"
+        "%hmul %h[nums ...]%h\t                 Multiplies the specified numbers together.\n"
+        "%hdiv %h[nums ...]%h\t                 Divides the numbers.\n"
+        "\n"
+        "%hprint %h[str ...]%h\t                Prints the specified text.\n"
+        "%hclear%h\t                          Clears the console.\n"
+        "\n"
+        "%hsetrow %h[row] %h| %hfit%h\t             Sets the console max rows to the specified number, \"fit\" adjusts the console to fit the screen.\n"
+        "%hsetcol %h[col] %h| %hfit%h\t             Sets the console max columns to the specified number, \"fit\" adjusts the console to fit the screen.\n"
+        "\n"
+        "%hscrninfo%h\t                       Prints information about the screen.\n"
+        "%hchecksse%h\t                       Checks whether SSE is available.\n"
+        "%htimepit%h\t                        Prints out the amount of time the Programmable Interrupt Timer has fired.\n"
+        "%hlogpci %h[num]%h\t                   Logs all the PCI devices. The \"num\" argument specifies the number of devices to print.\n"
+        "\n"
+        "%hmemdump %h[bytes] [col] [addr]%h\t   Dumps the memory at the specified address.\n"
+        "%hwrite %h[size] [data] [addr]%h\t     Writes the specified data to the address.\n"
+        "%hmalloc %h[bytes]%h\t                 Allocates the specified size of memory and prints the address.\n"
+        "%hfree %h[addr]%h\t                    Frees the allocated memory at the specified address.\n"
+        "%hcall %h[addr]%h\t                    Calls the function at the specified address.\n"
+        "\n"
+        // BASELINE:                      |
+        "%hrdisk %h[sector] [columns]%h\t       Reads the disk at the specified sector.\n"
+        "%hwdisk %h[byte] [sector] [offset]%h\t Writes the byte to the disk at the specified sector + offset in bytes.\n"
+        "\n"
+        "%hsnake%h\t                          Starts the snake game.\n"
+        "\n"
+        "%hhelp%h\t                           Displays this help message.\n",
+    DODGERBLUE, DEFAULT_FG,
+
+    DODGERBLUE, ORANGE, DEFAULT_FG,
+    DODGERBLUE, ORANGE, DEFAULT_FG,
+    DODGERBLUE, ORANGE, DEFAULT_FG,
+    DODGERBLUE, ORANGE, DEFAULT_FG,
+
+    DODGERBLUE, ORANGE, DEFAULT_FG,
+    DODGERBLUE, DEFAULT_FG,
+
+    DODGERBLUE, ORANGE, DEFAULT_FG, PURPLE, DEFAULT_FG,
+    DODGERBLUE, ORANGE, DEFAULT_FG, PURPLE, DEFAULT_FG,
+
+    DODGERBLUE, DEFAULT_FG,
+    DODGERBLUE, DEFAULT_FG,
+    DODGERBLUE, DEFAULT_FG,
+    DODGERBLUE, ORANGE, DEFAULT_FG,
+
+    DODGERBLUE, ORANGE, DEFAULT_FG,
+    DODGERBLUE, ORANGE, DEFAULT_FG,
+    DODGERBLUE, ORANGE, DEFAULT_FG,
+    DODGERBLUE, ORANGE, DEFAULT_FG,
+    DODGERBLUE, ORANGE, DEFAULT_FG,
+
+    DODGERBLUE, ORANGE, DEFAULT_FG,
+    DODGERBLUE, ORANGE, DEFAULT_FG,
+
+    GREEN, DEFAULT_FG,
+
+    DODGERBLUE, DEFAULT_FG
     );
 })
 
@@ -348,7 +328,7 @@ extern pci_common_t *list_ptr;
 CREATE_COMMAND(logpci, {
     if(argc > 1)
     {
-        kprintf("Must have 1 or no arguments\n");
+        kprintf("%hMust have 1 or no arguments%h\n", RED, DEFAULT_FG);
         return;
     }
 
@@ -364,55 +344,27 @@ CREATE_COMMAND(logpci, {
     
     while(device_iter != list_ptr)
     {
-        char cvendor_id[16];
-        char cdevice_id[16];
-        char cheader_type[16];
-        char cclass[16];
+        kprintf("%h%s%h\n", DODGERBLUE, pci_get_device_name(device_iter->class_code, device_iter->subclass), DEFAULT_FG);
 
-        itoa(device_iter->vendor_id, cvendor_id, 16);
-        itoa(device_iter->device_id, cdevice_id, 16);
-        itoa(device_iter->header_type, cheader_type, 16);
-        itoa(((uint16_t)device_iter->class_code << 8) + device_iter->subclass, cclass, 16);
+        kprintf("Vendor ID: %h0x%x%h\n", ORANGE, device_iter->vendor_id, DEFAULT_FG);
 
-        kprintf(pci_get_device_name(device_iter->class_code, device_iter->subclass));
-        kprintch('\n');
+        kprintf("Device ID: %h0x%x%h\n", ORANGE, device_iter->device_id, DEFAULT_FG);
 
-        kprintf("Vendor ID: 0x");
-        kprintf(cvendor_id);
-        kprintch('\n');
+        kprintf("Header Type: %h0x%x%h\n", ORANGE, device_iter->header_type, DEFAULT_FG);
 
-        kprintf("Device ID: 0x");
-        kprintf(cdevice_id);
-        kprintch('\n');
-
-        kprintf("Header Type: 0x");
-        kprintf(cheader_type);
-        kprintch('\n');
-
-        kprintf("Class & Subclass Code: 0x");
-        kprintf(cclass);
-        kprintch('\n');
+        kprintf("Class & Subclass Code: %h0x%x%h\n", ORANGE, PCI_COMBINE_CLASS(device_iter->class_code, device_iter->subclass), DEFAULT_FG);
 
         if(device_iter->header_type == 0)
         {
-            char intline[16];
-            char intpin[16];
             uint16_t line = pci_read_word(device_iter->location.bus, 
                                device_iter->location.device,
                                device_iter->location.function, 0x3C);
-            itoa(line, intline, 16);
-            itoa((line & 0xff00) >> 8, intpin, 16);
 
-            kprintf("Interrupt line: 0x");
-            kprintf(intline);
-            kprintch('\n');
-
-            kprintf("Interrupt pin: 0x");
-            kprintf(intpin);
-            kprintch('\n');
+            kprintf("Interrupt line: %h0x%x%h\n", ORANGE, line, DEFAULT_FG);
+            kprintf("Interrupt pin: %h0x%x%h\n", ORANGE, (line & 0xff00) >> 8, DEFAULT_FG);
         }
 
-        kprintch('\n');
+        kprintf("\n");
 
         device_iter++;
 
@@ -426,17 +378,13 @@ CREATE_COMMAND(logpci, {
 
 CREATE_COMMAND(snake, {
     main();
-    char cscore[16];
-    itoa(get_score(), cscore, 10);
-    kprintf("Score: ");
-    kprintf(cscore);
-    kprintch('\n');
+    kprintf("Score: %h%d%h\n", ORANGE, get_score(), DEFAULT_FG);
 })
 
 CREATE_COMMAND(rdisk, {
     if(argc != 2)
     {
-        kprintf("Must have 2 arguments for sector and columns.\n");
+        kprintf("%hMust have 2 arguments for sector and columns.%h\n", RED, DEFAULT_FG);
         return;
     }
 
@@ -446,10 +394,11 @@ CREATE_COMMAND(rdisk, {
     uint8_t buffer[ATA_SECTOR_BYTES];
     if(disk_read(0, sector, 1, buffer))
     {
-        kprintf("Disk read error.\n");
+        kprintf("%hDisk read error.%h\n", RED, DEFAULT_FG);
         return;
     }
 
+    set_color(ORANGE);
     for(size_t b = 0; b < ATA_SECTOR_BYTES; b++)
     {
         uint8_t byte = buffer[b];
@@ -463,20 +412,21 @@ CREATE_COMMAND(rdisk, {
         }
 
         kprintf(cbyte);
-        kprintch(' ');
+        kprintf(" ");;
 
         if((b+1) % columns == 0)
         {
-            kprintch('\n');
+            kprintf("\n");
         }
     }
-    kprintch('\n');
+    set_color(DEFAULT_FG);
+    kprintf("\n");
 })
 
 CREATE_COMMAND(wdisk, {
     if(argc != 3)
     {
-        kprintf("Must have 3 arguments for the byte, sector and offset.\n");
+        kprintf("%hMust have 3 arguments for the byte, sector and offset.%h\n", RED, DEFAULT_FG);
         return;
     }
 
@@ -487,7 +437,7 @@ CREATE_COMMAND(wdisk, {
     uint8_t buffer[ATA_SECTOR_BYTES];
     if(disk_read(0, sector, 1, buffer))
     {
-        kprintf("Disk read error.\n");
+        kprintf("%hDisk read error.%h\n", RED, DEFAULT_FG);
         return;
     }
 
@@ -495,11 +445,11 @@ CREATE_COMMAND(wdisk, {
 
     if(disk_write(0, sector, 1, buffer))
     {
-        kprintf("Disk write error.\n");
+        kprintf("%hDisk write error.%h\n", RED, DEFAULT_FG);
         return;
     }
 
-    kprintf("Successfully written byte to disk.\n");
+    kprintf("%hSuccessfully written byte to disk.%h\n", GREEN, DEFAULT_FG);
 })
 
 CREATE_COMMAND(wipesect, {

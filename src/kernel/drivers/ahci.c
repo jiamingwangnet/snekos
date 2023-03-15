@@ -36,13 +36,13 @@ void init_ahci()
     }
     if(PCI_COMBINE_CLASS(device.class_code, device.subclass) != 0x0106)
     {
-        kprintf("AHCI Error: No Serial ATA Controller found.\n");
+        kprintf("%hAHCI Error:%h No Serial ATA Controller found.\n", RED, DEFAULT_FG);
         return;
     }
 
-    map_address((void*)(PAGE_ALIGN(pci_get_bars(device).bar5)), (void*)0x800000);
-    map_address((void*)(PAGE_ALIGN(pci_get_bars(device).bar5) + 0x200000), (void*)0xA00000);
-    abar = (HBA_MEM*)(pci_get_bars(device).bar5 - PAGE_ALIGN(pci_get_bars(device).bar5) + 0x800000); // 0xbf1000
+    map_address((void*)(PAGE_ALIGN(pci_get_bars(device).bar5)), (void*)0x5400000); // FIXME: WHAT THE FUCK make an actual working page manager. Temporary fix: move the mappings to a higher address
+    map_address((void*)(PAGE_ALIGN(pci_get_bars(device).bar5) + 0x200000), (void*)0x5600000);
+    abar = (HBA_MEM*)(pci_get_bars(device).bar5 - PAGE_ALIGN(pci_get_bars(device).bar5) + 0x5400000); // 0xbf1000
     // (uint32_t)(pci_get_bars(device).bar5) 0xfebf1000
     probe_ports(abar);
 
@@ -71,13 +71,13 @@ void init_ahci()
                 {
                     memcpy((void*)unit, (void*)"KiB", 4);
                 }
-                kprintf("Initalised drive: %s\n\tport %d, size: %d%s\n", device.model, i, size, unit);
+                kprintf("Initalised drive: %h%s%h\n\tport %h%d%h, size: %h%d%s%h\n", DODGERBLUE, device.model, DEFAULT_FG, ORANGE, i, DEFAULT_FG, ORANGE, size, unit, DEFAULT_FG);
             }
             break;
         }
     }
 
-	kprintf("AHCI init finished. %d port(s) found.\n", nports);
+	kprintf("AHCI init finished. %h%d%h port(s) found.\n", ORANGE, nports, DEFAULT_FG);
 }
 
 void probe_ports(HBA_MEM *abar)

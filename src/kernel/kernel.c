@@ -35,25 +35,29 @@ void kernel_main()
     
     init_console(20, 20, 0xe0ffeb, 0x0f0f0f);
 
+    serial_print_blocks();
     kprintf(
-        "  ____             _     ___  ____  \n"
+        "%h  ____             _     ___  ____  \n"
         " / ___| _ __   ___| | __/ _ \\/ ___| \n"
         " \\___ \\| '_ \\ / _ | |/ | | | \\___ \\ \n"
         "  ___) | | | |  __|   <| |_| |___) |\n"
-        " |____/|_| |_|\\___|_|\\_\\\\___/|____/ \n"
-    );
+        " |____/|_| |_|\\___|_|\\_\\\\___/|____/ \n%h",
+    GREEN, DEFAULT_FG);
 
     pci_check_all_busses();
-    kprintch('\n');
+    kprintf("\n");
 
     init_ahci();
-    kprintch('\n');
+    kprintf("\n");
     
     init_ata();
-    kprintch('\n');
+    kprintf("\n");
+    
+    // extern uint32_t *color_memory;
+    // kprintf("0x%x\n", color_memory);
 
     enable_input();
-
+    
     bool right = true;
     for(uint32_t x = 0;;)
     {

@@ -32,7 +32,7 @@ void init_ata()
 
     if( PCI_COMBINE_CLASS(device.class_code, device.subclass) != 0x0101 )
     {
-        kprintf("ATA Error: No IDE Controller available.\n");
+        kprintf("%hATA Error:%h No IDE Controller available.\n", RED, DEFAULT_FG);
         return;
     }
 
@@ -41,7 +41,7 @@ void init_ata()
 
     ide_init(bars.bar0, bars.bar1, bars.bar2, bars.bar3, bars.bar4);
 
-    kprintf("ATA init finished. %d drive(s) found.\n", ndrives);
+    kprintf("ATA init finished. %h%d%h drive(s) found.\n", ORANGE, ndrives, DEFAULT_FG);
 }
 
 uint8_t ide_read(uint8_t channel, uint8_t reg)
@@ -118,7 +118,7 @@ uint8_t ide_print_error(uint32_t drive, uint8_t err)
     if (err == 0)
         return err;
 
-    kprintf("IDE ERROR: ");
+    kprintf("%hIDE ERROR: %h", RED, DEFAULT_FG);
     if (err == 1) {kprintf("- Device Fault\n    "); err = 19;}
     else if (err == 2)
     {
@@ -136,7 +136,7 @@ uint8_t ide_print_error(uint32_t drive, uint8_t err)
     
     kprintf("- [");
     kprintf((const char *[]){"Primary", "Secondary"}[ide_devices[drive].channel]);
-    kprintch(' ');
+    kprintf(" ");;
     kprintf((const char *[]){"Master", "Slave"}[ide_devices[drive].drive]);
     kprintf("] ");
     kprintf(ide_devices[drive].model);
@@ -242,42 +242,28 @@ void ide_init(uint32_t bar0, uint32_t bar1, uint32_t bar2, uint32_t bar3, uint32
                 devs ++;
                 size_t size = ide_devices[i].size / 2;
 
-                kprintf(" Found ");
-                kprintf((const char *[]){"ATA", "ATAPI"}[ide_devices[i].type]);
-                kprintf(" Drive ");
-
-                char csize[16];
+                char unit[7];
 
                 if (size >= 1024 * 1024)
                 {
                     size /= (1024 * 1024);
-                    itoa(size, csize, 10);
-
-                    kprintf(csize);
-                    kprintf("GiB - ");
+                    memcpy((void*)unit, (void*)"GiB - ", 7);
                 }
                 else if(size >= 1024)
                 {
                     size /= 1024;
-                    itoa(size, csize, 10);
-
-                    kprintf(csize);
-                    kprintf("MiB - ");
+                    memcpy((void*)unit, (void*)"MiB - ", 7);
                 }
                 else
                 {
-                    itoa(size, csize, 10);
-
-                    kprintf(csize);
-                    kprintf("KiB - ");
+                    memcpy((void*)unit, (void*)"KiB - ", 7);
                 }
 
-                kprintf(ide_devices[i].model);
-                kprintch('\n');
+                kprintf(" Found %h%s%h Drive %h%d%s %h%s%h\n", PURPLE, (const char *[]){"ATA", "ATAPI"}[ide_devices[i].type], DEFAULT_FG, ORANGE, size, unit, DODGERBLUE, ide_devices[i].model, DEFAULT_FG);
             }
         }
 
-        if(devs == 0) kprintf("No ATA drives found.\n");
+        if(devs == 0) kprintf("%hNo ATA drives found.%h\n", RED, DEFAULT_FG);
     }
 }
 
