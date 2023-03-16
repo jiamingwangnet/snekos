@@ -242,9 +242,7 @@ void handle_commands()
             return;
         }
     }
-    kprintf("Error: \"");
-    kprintf(name);
-    kprintf("\" command not found\n");
+    kprintf("%hError: \"%s\" command not found.%h\n", RED, name, DEFAULT_FG);
 
     enable_input();
 }
