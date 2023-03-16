@@ -40,9 +40,9 @@ void init_ahci()
         return;
     }
 
-    map_address((void*)(PAGE_ALIGN(pci_get_bars(device).bar5)), (void*)0x5400000); // FIXME: WHAT THE FUCK make an actual working page manager. Temporary fix: move the mappings to a higher address
-    map_address((void*)(PAGE_ALIGN(pci_get_bars(device).bar5) + 0x200000), (void*)0x5600000);
-    abar = (HBA_MEM*)(pci_get_bars(device).bar5 - PAGE_ALIGN(pci_get_bars(device).bar5) + 0x5400000); // 0xbf1000
+    void* first = request_page((void*)(PAGE_ALIGN(pci_get_bars(device).bar5))); // FIXME: WHAT THE FUCK make an actual working page manager. Temporary fix: move the mappings to a higher address
+    request_page((void*)(PAGE_ALIGN(pci_get_bars(device).bar5) + 0x200000));
+    abar = (HBA_MEM*)(pci_get_bars(device).bar5 - PAGE_ALIGN(pci_get_bars(device).bar5) + (uint64_t)first); // 0xbf1000
     // (uint32_t)(pci_get_bars(device).bar5) 0xfebf1000
     probe_ports(abar);
 
@@ -146,7 +146,6 @@ int check_type(HBA_PORT *port)
 void port_rebase(HBA_PORT *port, size_t portno)
 {
     stop_cmd(port); // stop command engine
-    // map_address(AHCI_BASE, 0x800000);
     void *newBase = ALIGN_ADDR( (uint64_t)virt_to_phys(kmalloc(sizeof(HBA_CMD_HEADER) * 32 + 0x1000)), 0x1000);
 
 	// Command list entry size = 32

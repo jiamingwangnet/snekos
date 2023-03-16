@@ -51,7 +51,8 @@ void map_framebuffer(uint64_t framebuffer, uint64_t screen_size)
 {
     for(uint64_t i = 0; i < screen_size; i += 0x200000)
     {
-        map_address((void*)(framebuffer + i), (void*)(FRAMEBUFFER + i));
+        void *addr = request_page((void*)(framebuffer + i));
+        if(i == 0) FRAMEBUFFER = (uint64_t)addr;
     }
 }
 

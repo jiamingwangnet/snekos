@@ -1,7 +1,7 @@
 global start
 global gdt64.data
 global multiboot_info
-global page_table_l2
+global page_table_l2_high
 global gdt64.pointer
 global stack_top
 
@@ -126,6 +126,10 @@ setup_tables:
     or eax, 0b11
     mov dword [(page_table_l3_high - VOFFSET) + 510 * 8], eax
 
+    mov eax, page_table_l2_high - VOFFSET
+    or eax, 0b11
+    mov dword [(page_table_l3_low - VOFFSET) + 8], eax
+
     ; loop
     mov ecx, 0 ; ecx is the counter
 .map_l2_table: ; maps the l2 table to point to valid pages
@@ -173,6 +177,8 @@ page_table_l3_low:
 page_table_l3_high:
     resb 4096
 page_table_l2:
+    resb 4096
+page_table_l2_high:
     resb 4096
 
 align 16

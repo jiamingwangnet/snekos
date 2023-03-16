@@ -2,7 +2,7 @@
 #include "../stdlib/types.h"
 #include "font.h"
 
-#define FRAMEBUFFER 0x3D000000
+uint64_t FRAMEBUFFER;
 
 framebuffer_tag* tagfb;
 uint32_t SCRN_HEIGHT;

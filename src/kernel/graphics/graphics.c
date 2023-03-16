@@ -2,12 +2,14 @@
 #include "../include/memory/kmalloc.h"
 #include "../include/stdlib/stdlib.h"
 
-uint32_t* const SRN_BUFFER = (uint32_t*) FRAMEBUFFER;
+uint32_t* SRN_BUFFER;
 uint32_t* B_BUFFER;
 uint32_t SCRN_PITCH;
 
 void init_graphics(void)
 {
+    SRN_BUFFER = (uint32_t*) FRAMEBUFFER;
+
     // temporary fix for overwriting multiboot2 stuff
     framebuffer_tag *fbptr = (framebuffer_tag*)kmalloc(sizeof(framebuffer_tag));
     memcpy((void*)fbptr, (void*)tagfb, sizeof(framebuffer_tag));
