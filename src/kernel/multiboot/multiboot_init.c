@@ -9,6 +9,9 @@
 extern uint64_t multiboot_info;
 extern framebuffer_tag* tagfb;
 
+uint32_t mem_lower;
+uint32_t mem_upper;
+
 inline uint64_t get_info_addr() 
 {
     if (multiboot_info & 7)
@@ -41,6 +44,56 @@ void init_multiboot()
             init_framebuffer();
             break;
         }        
+        case MULTIBOOT_TAG_TYPE_BASIC_MEMINFO:
+        {
+            mem_lower = ((struct multiboot_tag_basic_meminfo *) tag)->mem_lower;
+            mem_upper = ((struct multiboot_tag_basic_meminfo *) tag)->mem_upper;
+
+            char clower[16];
+            char cupper[16];
+
+            itoa(mem_lower, clower, 10);
+            itoa(mem_upper, cupper, 10);
+
+            serial_str("Lower: ");
+            serial_str(clower);
+            serial_str("Kb  Upper: ");
+            serial_str(cupper);
+            serial_str("Kb\n");
+
+            break;
+        }
+        case MULTIBOOT_TAG_TYPE_MMAP:
+        {
+            multiboot_memory_map_t *mmap;
+
+            for (mmap = ((struct multiboot_tag_mmap *) tag)->entries;
+                 (multiboot_uint8_t *) mmap 
+                   < (multiboot_uint8_t *) tag + tag->size;
+                 mmap = (multiboot_memory_map_t *) 
+                   ((unsigned long) mmap
+                    + ((struct multiboot_tag_mmap *) tag)->entry_size))
+            {
+                #ifdef DEBUG_LOG
+                char cbaseaddr[16];
+                char clen[16];
+                char ctype[16];
+                itoa(mmap->addr, cbaseaddr, 16);
+                itoa(mmap->len, clen, 10);
+                itoa(mmap->type, ctype, 10);
+
+                serial_str("Mmap Entry\n");
+                serial_str("base addr: 0x");
+                serial_str(cbaseaddr);
+                serial_str("\nlength: ");
+                serial_str(clen);
+                serial_str("\ntype: ");
+                serial_str(ctype);
+                serial_str("\n\n");
+                #endif
+            }
+            break;
+        }
         default:
             break;
         }

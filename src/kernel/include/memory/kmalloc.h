@@ -6,7 +6,7 @@
 extern uint64_t _kernel_end;
 
 #define MINIUM_SIZE 0x20
-#define PADDING 0x1000
+#define PADDING 0x200000
 #define PAGE_SIZE 0x200000
 #define INITIAL_SIZE 0x200000
 

@@ -3,7 +3,7 @@
 mem_block_t *heap_start;
 mem_block_t *heap_end;
 
-// const uint8_t heap_start_addr[0x2000000];
+// const uint8_t heap_start_addr[0x400000]; //  reserve memory
 
 void init_heap()
 {

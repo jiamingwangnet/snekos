@@ -16,6 +16,9 @@
 
 void scrn_test();
 
+extern uint32_t mem_lower;
+extern uint32_t mem_upper;
+
 void kernel_main()
 {
     init_multiboot();
@@ -41,8 +44,10 @@ void kernel_main()
         " / ___| _ __   ___| | __/ _ \\/ ___| \n"
         " \\___ \\| '_ \\ / _ | |/ | | | \\___ \\ \n"
         "  ___) | | | |  __|   <| |_| |___) |\n"
-        " |____/|_| |_|\\___|_|\\_\\\\___/|____/ \n%h",
+        " |____/|_| |_|\\___|_|\\_\\\\___/|____/ \n\n%h",
     GREEN, DEFAULT_FG);
+
+    kprintf("Lower Memory: %h%dKb%h  Upper Memory: %h%dKb%h\n\n", ORANGE, mem_lower, DEFAULT_FG, ORANGE, mem_upper, DEFAULT_FG);
 
     pci_check_all_busses();
     kprintf("\n");
@@ -57,6 +62,12 @@ void kernel_main()
     // kprintf("0x%x\n", color_memory);
 
     enable_input();
+
+    // for(int i = 0; i < 10000; i++) //133033984
+    // {
+    //     uint8_t *byte = (uint8_t*)0x100000;
+    //     byte[i] = 0;
+    // }
     
     bool right = true;
     for(uint32_t x = 0;;)
