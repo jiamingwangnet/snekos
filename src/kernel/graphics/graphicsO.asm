@@ -23,10 +23,8 @@ update_buffer:
     mov rbx, [SRN_BUFFER - 0xffffffff80000000]
     xor rcx, rcx
 .fill:
-    ; TODO: check alignment for movaps to get speed, i just changed it to movups which is slower on old processors.
-    ; Backbuffer (B_BUFFER) is misaligned which gives problems for movaps
-    movups xmm0, [rax + rcx]
-    movups [rbx + rcx], xmm0
+    movaps xmm0, [rax + rcx]
+    movaps [rbx + rcx], xmm0
     add rcx, 16
     cmp rcx, [SCRN_SIZE]
     jne .fill
@@ -108,8 +106,7 @@ fill_screen:
     
     xor rcx, rcx
 .fill:
-    ; TODO: check alignment for movaps to get speed, i just changed it to movups which is slower on old processors.
-    movups [rax + rcx], xmm0
+    movaps [rax + rcx], xmm0
     add rcx, 16
     cmp rcx, [SCRN_SIZE]
     jne .fill

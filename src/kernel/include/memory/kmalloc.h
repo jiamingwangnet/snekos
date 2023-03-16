@@ -11,6 +11,7 @@ extern uint64_t _kernel_end;
 #define INITIAL_SIZE 0x200000
 
 #define ALIGNMENT 0x10
+#define ADDR_ALIGN 0x1000
 
 typedef struct mem_block_t
 {
