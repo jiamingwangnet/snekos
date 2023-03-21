@@ -59,7 +59,7 @@ void isr_handler(reg_status_t status)
     char c_ss[15];
     itoa(status.ss, c_ss, 16);
 
-    draw_rect(0, 0, SCRN_WIDTH, SCRN_HEIGHT, ERR_BG);
+    fill_screen(ERR_BG);
     
     draw_str(20, 20, ERR_FG, ERR_BG, "FATAL ERROR!");
 

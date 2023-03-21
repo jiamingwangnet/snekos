@@ -24,6 +24,10 @@ higher_half:
     mov rsp, stack_top
     lgdt [gdt64.pointer]
     
+    %ifdef ENABLE_AVX
+    call enable_avx
+    %endif
+    
     call kernel_main
 
     hlt
@@ -31,3 +35,20 @@ higher_half:
 load_idt:
     lidt [edi] ; the first param gets passed into edi
     ret
+
+%ifdef ENABLE_AVX
+enable_avx:
+    push rax
+    push rcx
+    push rdx
+ 
+    xor rcx, rcx
+    xgetbv ;Load XCR0 register
+    or eax, 7 ;Set AVX, SSE, X87 bits
+    xsetbv ;Save back to XCR0
+ 
+    pop rdx
+    pop rcx
+    pop rax
+    ret
+%endif

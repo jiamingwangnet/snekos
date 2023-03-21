@@ -73,11 +73,11 @@ void kernel_main()
     for(uint32_t x = 0;;)
     {
         console_loop();
-        
+        // draw_rect_aligned(0, 10, SCRN_WIDTH, SCRN_HEIGHT - 10, 0x4da5d1);
         if(get_time() % (1000/60) == 0)
         {        
             // clear path
-            draw_rect(0,0,SCRN_WIDTH, 10, 0x303030);
+            draw_rect(0,0, SCRN_WIDTH, 10, 0x303030);
             draw_rect(x, 0, 10, 10, 0x28c77a);
             if(right)
                 x++;
@@ -87,7 +87,7 @@ void kernel_main()
                 right = false;
             else if(x <= 0)
                 right = true;
-
+           
             update_buffer();
         }
     }

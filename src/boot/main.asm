@@ -83,7 +83,13 @@ check_sse: ; 0x160ef0
     mov cr0, eax
     
     mov eax, cr4
-    or ax, 3 << 9
+    
+    %ifdef ENABLE_AVX
+    or eax, 515 << 9
+    %else
+    or eax, 3 << 9
+    %endif
+
     mov cr4, eax
     ret
 

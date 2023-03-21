@@ -111,9 +111,93 @@ inline uint32_t init_color_u32(uint32_t color)
             ((color       & 0xff) << tagfb->framebuffer_blue_field_position);
 }
 
+#ifdef OPTIMISE_GRAPHICS_C
+inline void update_buffer(void)
+{
+    for(size_t i = 0; i < SCRN_SIZE; i += 16)
+    {
+        __asm__ volatile("movaps xmm0, [%0]" :: "r"((uint8_t*)B_BUFFER + i));
+        __asm__ volatile("movaps [%0], xmm0" :: "r"((uint8_t*)SRN_BUFFER + i));
+    }
+}
+
+inline void put_pixel(uint32_t x, uint32_t y, uint32_t color)
+{
+    B_BUFFER[y * SCRN_WIDTH + x] = color;
+}
+
+inline void draw_rect_aligned(uint32_t x, uint32_t y, uint32_t width, uint32_t height, uint32_t color)
+{
+    uint32_t *buffer = B_BUFFER + y * SCRN_WIDTH;
+    uint32_t dy, dx;
+
+    width <<= 2;
+    x <<= 2;
+
+    __asm__ volatile(
+        "movd xmm0, %0\n"
+        "shufps xmm0, xmm0, 0"
+        :: "g"(color)
+    );
+
+    for(dy = 0; dy < height; ++dy)
+    {
+        for(dx = x; dx < width + x; dx += 16)
+        {
+            __asm__ volatile("movaps [%0], xmm0" :: "r"((uint8_t*)buffer + dx));
+        }
+        buffer += SCRN_WIDTH;
+    }
+}
+
+inline void draw_rect(uint32_t x, uint32_t y, uint32_t width, uint32_t height, uint32_t color)
+{
+    register uint32_t *buffer asm("r11") = B_BUFFER + y * SCRN_WIDTH + x;
+
+    __asm__ volatile(
+        "push rbx\n"
+        "xor ebx, ebx\n"
+        "mov r10, [SCRN_WIDTH]\n" // temporary fix
+        "mov rax, 4\n"
+        "imul r10, rax\n"
+        "1:\n"
+        "push rcx\n"
+        "mov rdi, %0\n"
+        "mov ecx, %1\n"
+        "mov eax, %2\n"
+        "rep stosd\n"
+        "inc ebx\n"
+        "add r11, r10\n"
+        "pop rcx\n"
+        "cmp ebx, ecx\n"
+        "jl 1b\n"
+        "pop rbx"
+        :: "r"(buffer), "r"(width), "r"(color)
+    );
+}
+
+inline void fill_screen(uint32_t color)
+{
+    #ifdef ENABLE_AVX
+    __asm__ volatile("vbroadcastss xmm1, [%0]" :: "g"(&color));
+    #else
+    __asm__ volatile(
+        "movd xmm0, %0\n"
+        "shufps xmm0, xmm0, 0"
+        :: "g"(color)
+    );
+    #endif
+
+    for(size_t i = 0; i < SCRN_SIZE; i += 16)
+    {
+        __asm__ volatile("movaps [%0], xmm0" :: "r"((uint8_t*)B_BUFFER + i));
+    }
+}
+#endif
+
 
 #ifndef OPTIMISE_GRAPHICS
-
+#ifndef OPTIMISE_GRAPHICS_C
 inline void update_buffer(void)
 {
     memcpy((void*)SRN_BUFFER, (void*)B_BUFFER, SCRN_SIZE);
@@ -145,4 +229,5 @@ inline void fill_screen(uint32_t color)
         B_BUFFER[p] = color;
     }
 }
+#endif
 #endif
