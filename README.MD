@@ -17,8 +17,8 @@ It has two boot modes, snake and terminal. The snake mode will boot into the sna
 Open a terminal and run: 
 `make build`
 
-## Run
-Make sure [Qemu](https://www.qemu.org/download/) is installed.
+## Run in QEMU
+Make sure [QEMU](https://www.qemu.org/download/) is installed.
 
 Open a terminal and run: 
 `qemu-system-x86_64 -drive file=dist/SnekOS.iso`
