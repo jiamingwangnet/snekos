@@ -39,10 +39,12 @@ void init_ahci()
         kprintf("%hAHCI Error:%h No Serial ATA Controller found.\n", RED, DEFAULT_FG);
         return;
     }
+	
+	// request_page((void*)(PAGE_ALIGN(pci_get_bars(device).bar5)));
+    // request_page((void*)(PAGE_ALIGN(pci_get_bars(device).bar5) + 0x200000));
 
-    void* first = request_page((void*)(PAGE_ALIGN(pci_get_bars(device).bar5))); // FIXME: WHAT THE FUCK make an actual working page manager. Temporary fix: move the mappings to a higher address
-    request_page((void*)(PAGE_ALIGN(pci_get_bars(device).bar5) + 0x200000));
-    abar = (HBA_MEM*)(pci_get_bars(device).bar5 - PAGE_ALIGN(pci_get_bars(device).bar5) + (uint64_t)first); // 0xbf1000
+    abar = (HBA_MEM*)request_memory_addr(pci_get_bars(device).bar5, 0x200000);
+	// (HBA_MEM*)(pci_get_bars(device).bar5 - PAGE_ALIGN(pci_get_bars(device).bar5) + (uint64_t)first); // 0xbf1000
     // (uint32_t)(pci_get_bars(device).bar5) 0xfebf1000
     probe_ports(abar);
 
@@ -56,22 +58,7 @@ void init_ahci()
             if(ahci_identify(ports[i].port, &device))
             {
                 size_t size = device.size / 2;
-                char unit[4];
-                if (size >= 1024 * 1024)
-                {
-                    size /= (1024 * 1024);
-                    memcpy((void*)unit, (void*)"GiB", 4);
-                }
-                else if(size >= 1024)
-                {
-                    size /= 1024;
-                    memcpy((void*)unit, (void*)"MiB", 4);
-                }
-                else
-                {
-                    memcpy((void*)unit, (void*)"KiB", 4);
-                }
-                kprintf("Initalised drive: %h%s%h\n\tport %h%d%h, size: %h%d%s%h\n", DODGERBLUE, device.model, DEFAULT_FG, ORANGE, i, DEFAULT_FG, ORANGE, size, unit, DEFAULT_FG);
+                kprintf("Initalised drive: %h%s%h\n\tport %h%d%h, size: %h%d%s%h\n", DODGERBLUE, device.model, DEFAULT_FG, ORANGE, i, DEFAULT_FG, ORANGE, CONVERT_MEM_UNIT(size), GET_MEM_UNIT(size), DEFAULT_FG);
             }
             break;
         }
@@ -146,7 +133,7 @@ int check_type(HBA_PORT *port)
 void port_rebase(HBA_PORT *port, size_t portno)
 {
     stop_cmd(port); // stop command engine
-    void *newBase = ALIGN_ADDR( (uint64_t)virt_to_phys(kmalloc(sizeof(HBA_CMD_HEADER) * 32 + 0x1000)), 0x1000);
+    void *newBase = ALIGN_ADDR( (uint64_t)get_phys_mapping(kmalloc(sizeof(HBA_CMD_HEADER) * 32 + 0x1000)), 0x1000);
 
 	// Command list entry size = 32
 	// Command list entry maxim count = 32
@@ -155,7 +142,7 @@ void port_rebase(HBA_PORT *port, size_t portno)
 	port->clbu = (uint32_t)((uint64_t)newBase >> 32);
 	memset((void*)port->clb, 0, 1024);
 
-    void *fisBase = ALIGN_ADDR( (uint64_t)virt_to_phys(kmalloc(256 * 32 + 0x1000)), 0x1000);
+    void *fisBase = ALIGN_ADDR( (uint64_t)get_phys_mapping(kmalloc(256 * 32 + 0x1000)), 0x1000);
 	// FIS entry size = 256 bytes per port
 	port->fb = fisBase;
 	port->fbu = (uint32_t)((uint64_t)fisBase >> 32);
@@ -167,7 +154,7 @@ void port_rebase(HBA_PORT *port, size_t portno)
 	for (int i = 0; i < 32; i++)
 	{
 		cmdheader[i].prdtl = 8;	// 8 prdt entries per command table
-        void *ctblAddr = ALIGN_ADDR((uint64_t)virt_to_phys(kmalloc(256 + 0x1000)), 0x1000);
+        void *ctblAddr = ALIGN_ADDR((uint64_t)get_phys_mapping(kmalloc(256 + 0x1000)), 0x1000);
 		// 256 bytes per command table, 64+16+48+16*8
 		cmdheader[i].ctba = ctblAddr;
 		cmdheader[i].ctbau = (uint32_t)((uint64_t)ctblAddr >> 32);
@@ -274,7 +261,7 @@ bool send_command(HBA_PORT *port, HBA_PRDT_ENTRY *prdt, uint16_t prdtl, FIS_REG_
 bool ahci_identify(HBA_PORT *port, device_info_t *device)
 {
     uint8_t buffer[2048];
-    uint64_t phys_buf = virt_to_phys((void*)buffer);
+    uint64_t phys_buf = get_phys_mapping((void*)buffer);
 
     uint16_t prdtl = 1;
     HBA_PRDT_ENTRY *entries = (HBA_PRDT_ENTRY*)kmalloc(sizeof(HBA_PRDT_ENTRY) * prdtl);
@@ -319,7 +306,7 @@ bool ahci_identify(HBA_PORT *port, device_info_t *device)
 
 bool ahci_read(HBA_PORT *port, uint64_t sector, uint32_t nsectors, uint8_t *buf)
 {
-    buf = (uint8_t*)virt_to_phys((void*)buf);
+    buf = (uint8_t*)get_phys_mapping((void*)buf);
 
     uint32_t lsector = (uint32_t)sector;
     uint32_t hsector = (uint32_t)(sector >> 32);
@@ -373,7 +360,7 @@ bool ahci_read(HBA_PORT *port, uint64_t sector, uint32_t nsectors, uint8_t *buf)
 
 bool ahci_write(HBA_PORT *port, uint64_t sector, uint32_t nsectors, uint8_t *buf)
 {
-	buf = (uint8_t*)virt_to_phys((void*)buf);
+	buf = (uint8_t*)get_phys_mapping((void*)buf);
 
     uint32_t lsector = (uint32_t)sector;
     uint32_t hsector = (uint32_t)(sector >> 32);

@@ -53,6 +53,9 @@ void isr_handler(reg_status_t status)
     char c_rdi[15];
     itoa(status.rdi, c_rdi, 16);
 
+    char c_rip[15];
+    itoa(status.rip, c_rip, 16);
+
     char c_cs[15];
     itoa(status.cs, c_cs, 16);
 
@@ -89,11 +92,14 @@ void isr_handler(reg_status_t status)
     draw_str(20, 190, ERR_FG, ERR_BG, "RDI:                0x");
     draw_str(20 + PSF1_WIDTH + 17 * 11 + 4, 190, ERR_FG, ERR_BG, c_rdi);
 
-    draw_str(20, 207, ERR_FG, ERR_BG, "CS :                0x");
-    draw_str(20 + PSF1_WIDTH + 17 * 11 + 4, 207, ERR_FG, ERR_BG, c_cs);
+    draw_str(20, 207, ERR_FG, ERR_BG, "RIP:                0x");
+    draw_str(20 + PSF1_WIDTH + 17 * 11 + 4, 207, ERR_FG, ERR_BG, c_rip);
 
-    draw_str(20, 224, ERR_FG, ERR_BG, "SS :                0x");
-    draw_str(20 + PSF1_WIDTH + 17 * 11 + 4, 224, ERR_FG, ERR_BG, c_ss);
+    draw_str(20, 224, ERR_FG, ERR_BG, "CS :                0x");
+    draw_str(20 + PSF1_WIDTH + 17 * 11 + 4, 224, ERR_FG, ERR_BG, c_cs);
+
+    draw_str(20, 241, ERR_FG, ERR_BG, "SS :                0x");
+    draw_str(20 + PSF1_WIDTH + 17 * 11 + 4, 241, ERR_FG, ERR_BG, c_ss);
     update_buffer();
 
 #ifdef DEBUG_LOG
@@ -127,6 +133,10 @@ void isr_handler(reg_status_t status)
     
     serial_str("RDI: 0x");
     serial_str(c_rdi);
+    serial_char('\n');
+
+    serial_str("RIP: 0x");
+    serial_str(c_rip);
     serial_char('\n');
     
     serial_str("CS : ");

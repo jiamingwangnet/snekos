@@ -4,7 +4,7 @@
 
 uint64_t FRAMEBUFFER;
 
-framebuffer_tag* tagfb;
+framebuffer_tag tagfb;
 uint64_t SCRN_HEIGHT;
 uint64_t SCRN_WIDTH;
 size_t SCRN_SIZE;

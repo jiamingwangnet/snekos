@@ -7,7 +7,6 @@ extern uint64_t _kernel_end;
 
 #define MINIUM_SIZE 0x20
 #define PADDING 0x200000
-#define PAGE_SIZE 0x200000
 #define INITIAL_SIZE 0x200000
 
 #define ALIGNMENT 0x10
@@ -33,6 +32,9 @@ void init_heap();
 mem_block_t *split_block(mem_block_t *block, size_t size);
 void merge_blocks(mem_block_t *target);
 void expand_heap(size_t size);
+
+size_t used_blocks_size();
+size_t reserved_blocks_size();
 
 // C allocation functions
 void *kaligned_alloc(size_t alignment, size_t size);

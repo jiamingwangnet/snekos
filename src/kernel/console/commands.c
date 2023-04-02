@@ -7,6 +7,8 @@
 #include "../include/drivers/pci.h"
 #include "apps/snake.h"
 #include "../include/drivers/disk.h"
+#include "../include/memory/memory.h"
+#include "../include/memory/pmm.h"
 
 CREATE_COMMAND(hello, {
     kprintf("Hello There!\n");
@@ -93,7 +95,7 @@ CREATE_COMMAND(setrow, {
     if(strcmp(argv[0], "fit") == 0)
     {
         PSF1_font *font = get_font();
-        max_rows = (tagfb->common.framebuffer_height - y) / (font->charsize + line_pad) - 1;
+        max_rows = (tagfb.common.framebuffer_height - y) / (font->charsize + line_pad) - 1;
         return;
     }
     else if(size > 0)
@@ -112,7 +114,7 @@ CREATE_COMMAND(setcol, {
     uint32_t size = atoi(argv[0]);
     if(strcmp(argv[0], "fit") == 0)
     {
-        max_cols = (tagfb->common.framebuffer_width - x) / (PSF1_WIDTH + col_pad) - 1;
+        max_cols = (tagfb.common.framebuffer_width - x) / (PSF1_WIDTH + col_pad) - 1;
         return;
     }
     else if(size > 0)
@@ -128,14 +130,14 @@ extern uint32_t* B_BUFFER;
 CREATE_COMMAND(scrninfo, {
     kprintf("%h----Screen Information----%h\n", DODGERBLUE, DEFAULT_FG);
 
-    kprintf("Framebuffer address: %h0x%x%h\n", ORANGE, tagfb->common.framebuffer_addr, DEFAULT_FG);
-    kprintf("Backbuffer address: %h0x%x%h\n", ORANGE, (uint64_t)B_BUFFER - 0xffffffff80000000, DEFAULT_FG);
+    kprintf("Framebuffer address: %h0x%x%h\n", ORANGE, tagfb.common.framebuffer_addr, DEFAULT_FG);
+    kprintf("Backbuffer address: %h0x%x%h\n", ORANGE, (uint64_t)virt_to_phys((void*)B_BUFFER), DEFAULT_FG);
 
-    kprintf("Width: %h%d\n%h", ORANGE, tagfb->common.framebuffer_width, DEFAULT_FG);
+    kprintf("Width: %h%d\n%h", ORANGE, tagfb.common.framebuffer_width, DEFAULT_FG);
 
-    kprintf("Height: %h%d\n%h", ORANGE, tagfb->common.framebuffer_height, DEFAULT_FG);
+    kprintf("Height: %h%d\n%h", ORANGE, tagfb.common.framebuffer_height, DEFAULT_FG);
 
-    kprintf("BPP: %h%d\n%h", ORANGE, tagfb->common.framebuffer_bpp, DEFAULT_FG);
+    kprintf("BPP: %h%d\n%h", ORANGE, tagfb.common.framebuffer_bpp, DEFAULT_FG);
 })
 
 CREATE_COMMAND(checksse, {
@@ -227,7 +229,7 @@ CREATE_COMMAND(malloc, {
         return;
     }
 
-    uint64_t addr = (uint64_t)kmalloc(atoi(argv[0])) - 0xffffffff80000000;
+    uint64_t addr = (uint64_t)virt_to_phys((void*)kmalloc(atoi(argv[0])));
 
     kprintf("Allocated memory at: %h%d%h (%h0x%x%h)\n", ORANGE, addr, DEFAULT_FG, ORANGE, addr, DEFAULT_FG);
 })
@@ -513,6 +515,33 @@ CREATE_COMMAND(wipedisk, {
     kprintf("Successfully wiped %d sector(s) (%d KiB) in %d ms.\n", size, size / 2, end_time - start_time);
 })
 
+CREATE_COMMAND(meminfo, {
+    kprintf("%h----------MEMORY INFO----------%h\n", DODGERBLUE, DEFAULT_FG);
+    kprintf("Total memory: %h%d%s%h (%h%dKiB%h)\n", ORANGE, CONVERT_MEM_UNIT(total_memory / 1024), GET_MEM_UNIT(total_memory / 1024), DEFAULT_FG, ORANGE, total_memory / 1024, DEFAULT_FG);
+    kprintf("Memory available: %h%d%s%h\n\n", ORANGE, CONVERT_MEM_UNIT(memory_available() / 1024), GET_MEM_UNIT(memory_available() / 1024), DEFAULT_FG);
+
+    kprintf("Memory allocated: %h%d%s%h\n", ORANGE, CONVERT_MEM_UNIT(memory_used() / 1024), GET_MEM_UNIT(memory_used() / 1024), DEFAULT_FG);
+    kprintf("Memory in use: %h%d%s%h\n", ORANGE, CONVERT_MEM_UNIT(used_blocks_size() / 1024), GET_MEM_UNIT(used_blocks_size() / 1024), DEFAULT_FG);
+    kprintf("Memory reserved: %h%d%s%h\n\n", ORANGE, CONVERT_MEM_UNIT(reserved_blocks_size() / 1024), GET_MEM_UNIT(reserved_blocks_size() / 1024), DEFAULT_FG);
+
+    kprintf("Percentage allocated: %h%d%%%h\n", ORANGE, (memory_used() / 1024 * 100) / (total_memory / 1024), DEFAULT_FG);
+    kprintf("Percentage in use: %h%d%%%h\n", ORANGE, (used_blocks_size() / 1024 * 100) / (total_memory / 1024), DEFAULT_FG);
+    kprintf("Percentage reserved: %h%d%%%h\n", ORANGE, (reserved_blocks_size() / 1024 * 100) / (total_memory / 1024), DEFAULT_FG);
+})
+
+extern mem_block_t *heap_start;
+CREATE_COMMAND(alloclog, {
+    mem_block_t *cur = heap_start;
+    while(cur != NULL)
+    {
+        kprintf("Address %h0x%x%h\tFree: %h%d%h\tSize: %h%d bytes%h\n", 
+                ORANGE, (uint64_t)virt_to_phys(cur), DEFAULT_FG, 
+                cur->is_free ? GREEN : RED, (uint32_t)cur->is_free, DEFAULT_FG, 
+                ORANGE, cur->size, DEFAULT_FG);
+        cur = cur->next;
+    }
+})
+
 void init_commands()
 {
     ADDCMD(hello, 0)
@@ -539,4 +568,6 @@ void init_commands()
     ADDCMD(wdisk, 21)
     ADDCMD(wipesect, 22)
     ADDCMD(wipedisk, 23)
+    ADDCMD(meminfo, 24)
+    ADDCMD(alloclog, 25)
 }

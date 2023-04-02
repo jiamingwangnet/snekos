@@ -241,25 +241,7 @@ void ide_init(uint32_t bar0, uint32_t bar1, uint32_t bar2, uint32_t bar3, uint32
             {
                 devs ++;
                 size_t size = ide_devices[i].size / 2;
-
-                char unit[7];
-
-                if (size >= 1024 * 1024)
-                {
-                    size /= (1024 * 1024);
-                    memcpy((void*)unit, (void*)"GiB - ", 7);
-                }
-                else if(size >= 1024)
-                {
-                    size /= 1024;
-                    memcpy((void*)unit, (void*)"MiB - ", 7);
-                }
-                else
-                {
-                    memcpy((void*)unit, (void*)"KiB - ", 7);
-                }
-
-                kprintf(" Found %h%s%h Drive %h%d%s %h%s%h\n", PURPLE, (const char *[]){"ATA", "ATAPI"}[ide_devices[i].type], DEFAULT_FG, ORANGE, size, unit, DODGERBLUE, ide_devices[i].model, DEFAULT_FG);
+                kprintf(" Found %h%s%h Drive %h%d%s %h%s%h\n", PURPLE, (const char *[]){"ATA", "ATAPI"}[ide_devices[i].type], DEFAULT_FG, ORANGE, CONVERT_MEM_UNIT(size), GET_MEM_UNIT(size), DODGERBLUE, ide_devices[i].model, DEFAULT_FG);
             }
         }
 

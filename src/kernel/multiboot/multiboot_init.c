@@ -7,10 +7,12 @@
 #endif
 
 extern uint64_t multiboot_info;
-extern framebuffer_tag* tagfb;
+extern framebuffer_tag tagfb;
 
 uint32_t mem_lower;
 uint32_t mem_upper;
+
+size_t header_size;
 
 inline uint64_t get_info_addr() 
 {
@@ -24,6 +26,9 @@ inline uint64_t get_info_addr()
 
 void init_multiboot()
 {
+    uint64_t addr = get_info_addr();
+    header_size = *(size_t*)addr;
+
     #ifdef DEBUG_LOG
     serial_str("Multiboot Addr: 0x");
     char caddr[16];
@@ -31,16 +36,21 @@ void init_multiboot()
     itoa(tagaddr >= 0x80000000 ? tagaddr - 0x80000000 : tagaddr, caddr, 16);
     serial_str(caddr);
     serial_char('\n');
+
+    serial_str("Multiboot Size: ");
+    char csize[16];
+    itoa(header_size, csize, 10);
+    serial_str(csize);
+    serial_char('\n');
     #endif
 
-    uint64_t addr = get_info_addr();
     for(LOOP_TAGS(tag, addr))
     {
         switch (tag->type)
         {
         case MULTIBOOT_TAG_TYPE_FRAMEBUFFER:
         {
-            tagfb = (framebuffer_tag*)tag;
+            tagfb = *(framebuffer_tag*)tag;
             init_framebuffer();
             break;
         }        
@@ -57,9 +67,9 @@ void init_multiboot()
 
             serial_str("Lower: ");
             serial_str(clower);
-            serial_str("Kb  Upper: ");
+            serial_str("KiB  Upper: ");
             serial_str(cupper);
-            serial_str("Kb\n");
+            serial_str("KiB\n");
 
             break;
         }
@@ -74,6 +84,11 @@ void init_multiboot()
                    ((unsigned long) mmap
                     + ((struct multiboot_tag_mmap *) tag)->entry_size))
             {
+                memory_map[mmap_len].base = mmap->addr;
+                memory_map[mmap_len].end = mmap->addr + mmap->len;
+                memory_map[mmap_len].available = mmap->type == 1;
+                mmap_len++;
+
                 #ifdef DEBUG_LOG
                 char cbaseaddr[16];
                 char clen[16];
@@ -111,12 +126,9 @@ void map_framebuffer(uint64_t framebuffer, uint64_t screen_size)
 
 void init_framebuffer()
 {
-    if(tagfb != 0)
-    {
-        SCRN_HEIGHT = tagfb->common.framebuffer_height;
-        SCRN_WIDTH = tagfb->common.framebuffer_width;
+    SCRN_HEIGHT = tagfb.common.framebuffer_height;
+    SCRN_WIDTH = tagfb.common.framebuffer_width;
 
-        map_framebuffer(tagfb->common.framebuffer_addr, 
-            tagfb->common.framebuffer_width * tagfb->common.framebuffer_height * (tagfb->common.framebuffer_bpp / 8));
-    }
+    map_framebuffer(tagfb.common.framebuffer_addr, 
+        tagfb.common.framebuffer_width * tagfb.common.framebuffer_height * (tagfb.common.framebuffer_bpp / 8));
 }

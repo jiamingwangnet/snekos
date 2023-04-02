@@ -19,6 +19,10 @@ enum CON_COLORS
     WHITE = 0xffffff,
 };
 
+// start from KiB
+#define GET_MEM_UNIT(size) ((const char*[]){"KiB", "MiB", "GiB"}[((size < 1024) ? 0 : ((size < 1024 * 1024) ? 1 : 2))]) // im sorry
+#define CONVERT_MEM_UNIT(size) ( size / ((size < 1024) ? 1 : (size < 1024 * 1024 ? 1024 : (1024 * 1024))))
+
 extern uint32_t DEFAULT_FG;
 extern uint32_t DEFAULT_BG;
 

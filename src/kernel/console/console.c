@@ -97,8 +97,8 @@ void init_console(uint32_t sx, uint32_t sy, uint32_t fg, uint32_t bg)
 
     // fit console
     PSF1_font *font = get_font();
-    max_cols = (tagfb->common.framebuffer_width - x) / (PSF1_WIDTH + col_pad) - 1;
-    max_rows = (tagfb->common.framebuffer_height - y) / (font->charsize + line_pad) - 1;
+    max_cols = (tagfb.common.framebuffer_width - x) / (PSF1_WIDTH + col_pad) - 1;
+    max_rows = (tagfb.common.framebuffer_height - y) / (font->charsize + line_pad) - 1;
 
     console_loop();
 }
@@ -334,6 +334,11 @@ void kprintf(const char *str, ...) // only allows specifier character
                 {
                     uint32_t color = va_arg(args, uint32_t);
                     set_color(color);
+                    break;
+                }
+                case '%':
+                {
+                    kprintch('%');
                     break;
                 }
             }

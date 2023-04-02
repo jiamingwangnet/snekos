@@ -18,7 +18,7 @@ typedef struct
 #define DECL_CMDFUNC(cname) \
     void cmd_##cname##_func(int argc, char *argv[]);
 
-#define N_COMMANDS 24
+#define N_COMMANDS 26
 command_t commands[N_COMMANDS];
 
 #define ADDCMD(cname, index) commands[index] = cmd_##cname;
@@ -49,3 +49,5 @@ DECL_CMDFUNC(rdisk)
 DECL_CMDFUNC(wdisk)
 DECL_CMDFUNC(wipesect)
 DECL_CMDFUNC(wipedisk)
+DECL_CMDFUNC(meminfo)
+DECL_CMDFUNC(alloclog)

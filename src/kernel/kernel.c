@@ -13,11 +13,10 @@
 #include "include/drivers/ata.h"
 #include "include/drivers/ahci.h"
 #include "include/drivers/disk.h"
+#include "include/memory/pmm.h"
+#include "include/memory/memory.h"
 
 void scrn_test();
-
-extern uint32_t mem_lower;
-extern uint32_t mem_upper;
 
 void kernel_main()
 {
@@ -25,6 +24,8 @@ void kernel_main()
 
     init_serial();
     init_idt();
+
+    init_pmm();
 
     init_keyboard(); // irq does not get fired if i type before this is initalised
 
@@ -37,7 +38,7 @@ void kernel_main()
     scrn_test();
     
     init_console(20, 20, 0xe0ffeb, 0x0f0f0f);
-
+    
     serial_print_blocks();
     kprintf(
         "%h  ____             _     ___  ____  \n"
@@ -47,8 +48,8 @@ void kernel_main()
         " |____/|_| |_|\\___|_|\\_\\\\___/|____/ \n\n%h",
     GREEN, DEFAULT_FG);
 
-    kprintf("Lower Memory: %h%dKb%h  Upper Memory: %h%dKb%h\n\n", ORANGE, mem_lower, DEFAULT_FG, ORANGE, mem_upper, DEFAULT_FG);
-
+    kprintf("Lower Memory: %h%d%s%h  Upper Memory: %h%d%s%h\n\n", ORANGE, CONVERT_MEM_UNIT(mem_lower), GET_MEM_UNIT(mem_lower), DEFAULT_FG, ORANGE, CONVERT_MEM_UNIT(mem_upper), GET_MEM_UNIT(mem_upper), DEFAULT_FG);
+    
     pci_check_all_busses();
     kprintf("\n");
 
