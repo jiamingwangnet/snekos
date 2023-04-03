@@ -8,7 +8,8 @@ mem_block_t *heap_end;
 
 void init_heap()
 {
-    heap_start = (mem_block_t*)(ALIGN_ADDR((uint64_t)&_kernel_end + PADDING, ADDR_ALIGN));
+    // heap_start = (mem_block_t*)(ALIGN_ADDR((uint64_t)&_kernel_end + PADDING, ADDR_ALIGN));
+    heap_start = (mem_block_t*)request_memory_addr((void*)(ALIGN_ADDR((uint64_t)&_kernel_end + PADDING, ADDR_ALIGN)), INITIAL_SIZE + sizeof(mem_block_t));
     heap_start->is_free = true;
     heap_start->next = NULL;
     heap_start->prev = NULL;
@@ -28,7 +29,7 @@ void *kmalloc(size_t size)
     {
         if(current->is_free && real_size <= current->size)
         {
-            if(current->size - real_size > MINIUM_SIZE)
+            if(current->size - real_size > MINIUM_SIZE + sizeof(mem_block_t)) // this probably fixes 0 block problem
             {
                 split_block(current, real_size);
                 current->is_free = false;
@@ -75,23 +76,39 @@ size_t align(size_t size)
 
 void expand_heap(size_t size)
 {
-    uint64_t real_heap_end = (uint64_t)heap_end + heap_end->size;
+    // uint64_t real_heap_end = (uint64_t)heap_end + heap_end->size;
     size_t required_pages = size / PAGE_SIZE + 1;
+    uint64_t real_heap_end = (uint64_t)request_memory(required_pages * PAGE_SIZE + sizeof(mem_block_t)); // FIXME: faulty
+    // serial_str("Expanding heap.\n");
+    
+    // // TODO:if heap end is out of the mapped memory, map more pages
+    // // allocate physical memory
 
-    // TODO:if heap end is out of the mapped memory, map more pages
-    // char addr[16];
-    // itoa(real_heap_end, addr, 16);
-    // serial_str(addr);
+    if(real_heap_end == -1) // goofy
+    {
+        serial_str("kmalloc out of memory received.\n");
+        return;
+    }
 
     mem_block_t *new_block = (mem_block_t*)real_heap_end;
     new_block->prev = heap_end;
     new_block->next = NULL;
 
-    new_block->size = required_pages * PAGE_SIZE;
+    new_block->size = required_pages * PAGE_SIZE + sizeof(mem_block_t);
     new_block->is_free = true;
 
     heap_end->next = new_block;
     heap_end = new_block;
+
+    // reset_heap_end(); // TODO: REMOVE TEMPORARY FIX
+    // for(size_t i = 0; i < total_blocks / 8; i++)
+    // {
+    //     char cbyte[9];
+    //     itoa(bitmap[i], cbyte, 2);
+    //     serial_str(cbyte);
+    //     serial_char(' ');
+    // }
+    // serial_char('\n');
 }
 
 mem_block_t *split_block(mem_block_t *block, size_t size)

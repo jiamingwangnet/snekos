@@ -93,7 +93,7 @@ CREATE_COMMAND(setrow, {
     if(strcmp(argv[0], "fit") == 0)
     {
         PSF1_font *font = get_font();
-        max_rows = (tagfb->common.framebuffer_height - y) / (font->charsize + line_pad) - 1;
+        max_rows = (tagfb.common.framebuffer_height - y) / (font->charsize + line_pad) - 1;
         return;
     }
     else if(size > 0)
@@ -112,7 +112,7 @@ CREATE_COMMAND(setcol, {
     uint32_t size = atoi(argv[0]);
     if(strcmp(argv[0], "fit") == 0)
     {
-        max_cols = (tagfb->common.framebuffer_width - x) / (PSF1_WIDTH + col_pad) - 1;
+        max_cols = (tagfb.common.framebuffer_width - x) / (PSF1_WIDTH + col_pad) - 1;
         return;
     }
     else if(size > 0)
@@ -128,14 +128,14 @@ extern uint32_t* B_BUFFER;
 CREATE_COMMAND(scrninfo, {
     kprintf("%h----Screen Information----%h\n", DODGERBLUE, DEFAULT_FG);
 
-    kprintf("Framebuffer address: %h0x%x%h\n", ORANGE, tagfb->common.framebuffer_addr, DEFAULT_FG);
+    kprintf("Framebuffer address: %h0x%x%h\n", ORANGE, tagfb.common.framebuffer_addr, DEFAULT_FG);
     kprintf("Backbuffer address: %h0x%x%h\n", ORANGE, (uint64_t)B_BUFFER - 0xffffffff80000000, DEFAULT_FG);
 
-    kprintf("Width: %h%d\n%h", ORANGE, tagfb->common.framebuffer_width, DEFAULT_FG);
+    kprintf("Width: %h%d\n%h", ORANGE, tagfb.common.framebuffer_width, DEFAULT_FG);
 
-    kprintf("Height: %h%d\n%h", ORANGE, tagfb->common.framebuffer_height, DEFAULT_FG);
+    kprintf("Height: %h%d\n%h", ORANGE, tagfb.common.framebuffer_height, DEFAULT_FG);
 
-    kprintf("BPP: %h%d\n%h", ORANGE, tagfb->common.framebuffer_bpp, DEFAULT_FG);
+    kprintf("BPP: %h%d\n%h", ORANGE, tagfb.common.framebuffer_bpp, DEFAULT_FG);
 })
 
 CREATE_COMMAND(checksse, {

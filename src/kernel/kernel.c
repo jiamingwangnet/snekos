@@ -13,11 +13,10 @@
 #include "include/drivers/ata.h"
 #include "include/drivers/ahci.h"
 #include "include/drivers/disk.h"
+#include "include/memory/pmm.h"
+#include "include/memory/memory.h"
 
 void scrn_test();
-
-extern uint32_t mem_lower;
-extern uint32_t mem_upper;
 
 void kernel_main()
 {
@@ -25,6 +24,8 @@ void kernel_main()
 
     init_serial();
     init_idt();
+
+    init_pmm();
 
     init_keyboard(); // irq does not get fired if i type before this is initalised
 
@@ -39,24 +40,30 @@ void kernel_main()
     init_console(20, 20, 0xe0ffeb, 0x0f0f0f);
 
     serial_print_blocks();
-    kprintf(
-        "%h  ____             _     ___  ____  \n"
-        " / ___| _ __   ___| | __/ _ \\/ ___| \n"
-        " \\___ \\| '_ \\ / _ | |/ | | | \\___ \\ \n"
-        "  ___) | | | |  __|   <| |_| |___) |\n"
-        " |____/|_| |_|\\___|_|\\_\\\\___/|____/ \n\n%h",
-    GREEN, DEFAULT_FG);
 
-    kprintf("Lower Memory: %h%dKb%h  Upper Memory: %h%dKb%h\n\n", ORANGE, mem_lower, DEFAULT_FG, ORANGE, mem_upper, DEFAULT_FG);
 
-    pci_check_all_busses();
-    kprintf("\n");
+    void *addr = request_memory(0x2000);
+    *(char*)addr = 'D';
+    serial_char(*(char*)(addr));
 
-    init_ahci();
-    kprintf("\n");
+    // kprintf(
+    //     "%h  ____             _     ___  ____  \n"
+    //     " / ___| _ __   ___| | __/ _ \\/ ___| \n"
+    //     " \\___ \\| '_ \\ / _ | |/ | | | \\___ \\ \n"
+    //     "  ___) | | | |  __|   <| |_| |___) |\n"
+    //     " |____/|_| |_|\\___|_|\\_\\\\___/|____/ \n\n%h",
+    // GREEN, DEFAULT_FG);
+
+    // kprintf("Lower Memory: %h%dKb%h  Upper Memory: %h%dKb%h\n\n", ORANGE, mem_lower, DEFAULT_FG, ORANGE, mem_upper, DEFAULT_FG);
+
+    // pci_check_all_busses();
+    // kprintf("\n");
+
+    // init_ahci();
+    // kprintf("\n");
     
-    init_ata();
-    kprintf("\n");
+    // init_ata();
+    // kprintf("\n");
     
     // extern uint32_t *color_memory;
     // kprintf("0x%x\n", color_memory);
@@ -72,7 +79,7 @@ void kernel_main()
     bool right = true;
     for(uint32_t x = 0;;)
     {
-        console_loop();
+        // console_loop();
         // draw_rect_aligned(0, 10, SCRN_WIDTH, SCRN_HEIGHT - 10, 0x4da5d1);
         if(get_time() % (1000/60) == 0)
         {        

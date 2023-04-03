@@ -1,13 +1,14 @@
 global start
 global gdt64.data
 global multiboot_info
-global page_table_l2_high
 global gdt64.pointer
 global stack_top
+global page_table_l2
 
 extern long_mode_start
 
 %define VOFFSET 0xFFFFFFFF80000000
+%define L2_TABLES 4
 
 section .multiboot.text ; program
 bits 32
@@ -123,18 +124,21 @@ setup_tables:
     mov eax, page_table_l4 - VOFFSET ; map page table 4 to itself
     or eax, 0b11 
     mov dword [(page_table_l4 - VOFFSET) + 510 * 8], eax 
-
-    mov eax, page_table_l2 - VOFFSET
-    or eax, 0b11
-    mov dword [(page_table_l3_low - VOFFSET) + 0], eax
-
+    
     mov eax, page_table_l2 - VOFFSET
     or eax, 0b11
     mov dword [(page_table_l3_high - VOFFSET) + 510 * 8], eax
 
-    mov eax, page_table_l2_high - VOFFSET
+    xor ecx, ecx
+    mov eax, page_table_l2 - VOFFSET
     or eax, 0b11
-    mov dword [(page_table_l3_low - VOFFSET) + 8], eax
+.map_l3_table:
+    mov dword [(page_table_l3_low - VOFFSET) + ecx * 8], eax
+
+    add eax, 4096
+    inc ecx
+    cmp ecx, L2_TABLES
+    jne .map_l3_table
 
     ; loop
     mov ecx, 0 ; ecx is the counter
@@ -183,9 +187,10 @@ page_table_l3_low:
 page_table_l3_high:
     resb 4096
 page_table_l2:
-    resb 4096
-page_table_l2_high:
-    resb 4096
+    resb 4096 * L2_TABLES
+
+; page_table_l2_high: ; TODO: reserve more memory for page_table_l2 instead of making a new label
+;     resb 4096
 
 align 16
 stack_bottom:

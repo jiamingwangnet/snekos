@@ -44,7 +44,7 @@ static char *mem_end;
 static size_t con_memory_size = 0x200000; // TODO: implement this fully, this caused a lot of errors
 
 // TODO: store color and character together in a single uint32_t: char * 0x1000000 + color   example: char: 0x64 color: 0x34e832 together: 0x6434e832
-static uint32_t *color_memory; // TODO: make more memory efficient solution
+static uint32_t color_memory[0x200000]; // TODO: make more memory efficient solution
 static uint32_t *cmem_end;
 
 inline void expand_cmem()
@@ -52,7 +52,7 @@ inline void expand_cmem()
     char *tmp = kmalloc(con_memory_size*2);
     memcpy((void*)tmp, (void*)con_memory, con_memory_size);
     kfree(con_memory);
-    con_memory = tmp;
+    // con_memory = tmp;
     con_memory_size *= 2;
 }
 
@@ -86,19 +86,19 @@ void init_console(uint32_t sx, uint32_t sy, uint32_t fg, uint32_t bg)
     attach_keyboard(console_keyboard);
 
     fill_screen(background);
+    serial_print_blocks();
+    con_memory = (char*)kmalloc(sizeof(char) * con_memory_size); // FIXME: causes #GP
+    // color_memory = (uint32_t*)kmalloc(sizeof(uint32_t) * con_memory_size);
 
-    con_memory = (char*)kmalloc(sizeof(char) * con_memory_size);
-    color_memory = (uint32_t*)kmalloc(sizeof(uint32_t) * con_memory_size);
-
-    mem_end = con_memory;
+    mem_end = con_memory; 
     cmem_end = color_memory;
     
     init_commands();
 
     // fit console
     PSF1_font *font = get_font();
-    max_cols = (tagfb->common.framebuffer_width - x) / (PSF1_WIDTH + col_pad) - 1;
-    max_rows = (tagfb->common.framebuffer_height - y) / (font->charsize + line_pad) - 1;
+    max_cols = (tagfb.common.framebuffer_width - x) / (PSF1_WIDTH + col_pad) - 1;
+    max_rows = (tagfb.common.framebuffer_height - y) / (font->charsize + line_pad) - 1;
 
     console_loop();
 }
