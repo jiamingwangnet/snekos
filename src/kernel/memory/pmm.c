@@ -55,6 +55,11 @@ void init_pmm()
         SETBIT((mbstart - entry.base) / BLOCK_SIZE);
     }
 
+    for(uint64_t bitstart = (uint64_t)virt_to_phys((void*)bitmap), bitend = bitstart + total_blocks; bitstart < bitend; bitstart += BLOCK_SIZE) // bitmap
+    {
+        SETBIT((bitstart - entry.base) / BLOCK_SIZE);
+    }
+
     for(; next_block < total_blocks; next_block++)
     {
         if(!ISSET(next_block))
@@ -62,11 +67,6 @@ void init_pmm()
     }
 
     total_memory = entry.end - entry.base;
-
-    // for(uint64_t bitstart = (uint64_t)bitmap, bitend = bitstart + size; bitstart < bitend; bitstart += BLOCK_SIZE) // bitmap
-    // {
-    //     SETBIT((bitstart - entry.base) / BLOCK_SIZE);
-    // }
 
     // for(size_t i = 0; i < total_blocks / 8; i++)
     // {

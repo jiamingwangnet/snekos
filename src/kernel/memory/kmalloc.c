@@ -12,20 +12,20 @@ extern uint8_t *bitmap;
 void init_heap()
 {
     uint64_t addr = request_memory(INITIAL_SIZE + sizeof(mem_block_t)); // requests 2MiB
-
-    heap_start = (mem_block_t*)(ALIGN_ADDR(addr, ADDR_ALIGN));
+    // heap_start = (mem_block_t*)request_memory_addr((void*)(ALIGN_ADDR((uint64_t)&_kernel_end + PADDING, ADDR_ALIGN)), INITIAL_SIZE + sizeof(mem_block_t));
+    heap_start = (mem_block_t*)ALIGN_ADDR(addr, ADDR_ALIGN);
     heap_start->is_free = true;
     heap_start->next = NULL;
     heap_start->prev = NULL;
     heap_start->size = INITIAL_SIZE + sizeof(mem_block_t);
     heap_end = heap_start;
 
-    char test[16];
-    itoa(addr, test, 16);
-    serial_str("\n\n");
-    serial_str(test);
+    // char test[16];
+    // itoa(addr, test, 16);
+    // serial_str("\n\n");
+    // serial_str(test);
 
-    serial_char('\n');
+    // serial_char('\n');
 
     // for(size_t i = 0; i < total_blocks / 8; i++)
     // {
@@ -97,7 +97,7 @@ void *kmalloc(size_t size)
     {
         if(current->is_free && real_size <= current->size)
         {
-            if(current->size - real_size > MINIUM_SIZE)
+            if(current->size - real_size > MINIUM_SIZE + sizeof(mem_block_t))
             {
                 split_block(current, real_size); // the extra memory allocated by the expand heap function gets split here
                 current->is_free = false;
