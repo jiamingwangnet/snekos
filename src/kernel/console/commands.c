@@ -9,7 +9,7 @@
 #include "../include/drivers/disk.h"
 
 CREATE_COMMAND(hello, {
-    kprintf("Hello There!\n");
+    // kprintf("Hello There!\n");
 })
 
 CREATE_COMMAND(add, {

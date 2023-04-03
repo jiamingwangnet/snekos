@@ -8,8 +8,9 @@ mem_block_t *heap_end;
 
 void init_heap()
 {
-    // heap_start = (mem_block_t*)(ALIGN_ADDR((uint64_t)&_kernel_end + PADDING, ADDR_ALIGN));
-    heap_start = (mem_block_t*)request_memory_addr((void*)(ALIGN_ADDR((uint64_t)&_kernel_end + PADDING, ADDR_ALIGN)), INITIAL_SIZE + sizeof(mem_block_t));
+    uint64_t addr = request_memory(INITIAL_SIZE + sizeof(mem_block_t)); // requests 2MiB
+    // heap_start = (mem_block_t*)request_memory_addr((void*)(ALIGN_ADDR((uint64_t)&_kernel_end + PADDING, ADDR_ALIGN)), INITIAL_SIZE + sizeof(mem_block_t));
+    heap_start = (mem_block_t*)ALIGN_ADDR(addr, ADDR_ALIGN);
     heap_start->is_free = true;
     heap_start->next = NULL;
     heap_start->prev = NULL;

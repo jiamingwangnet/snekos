@@ -20,7 +20,7 @@ struct ide_channel {
 
 void init_ata()
 {
-    kprintf("Checking for ATA devices.\n");
+    // kprintf("Checking for ATA devices.\n");
 
     pci_common_t device;
     for(size_t i = 0; i < MAX_DEVICES; i++)
@@ -32,7 +32,7 @@ void init_ata()
 
     if( PCI_COMBINE_CLASS(device.class_code, device.subclass) != 0x0101 )
     {
-        kprintf("%hATA Error:%h No IDE Controller available.\n", RED, DEFAULT_FG);
+        // kprintf("%hATA Error:%h No IDE Controller available.\n", RED, DEFAULT_FG);
         return;
     }
 
@@ -41,7 +41,7 @@ void init_ata()
 
     ide_init(bars.bar0, bars.bar1, bars.bar2, bars.bar3, bars.bar4);
 
-    kprintf("ATA init finished. %h%d%h drive(s) found.\n", ORANGE, ndrives, DEFAULT_FG);
+    // kprintf("ATA init finished. %h%d%h drive(s) found.\n", ORANGE, ndrives, DEFAULT_FG);
 }
 
 uint8_t ide_read(uint8_t channel, uint8_t reg)
@@ -118,28 +118,39 @@ uint8_t ide_print_error(uint32_t drive, uint8_t err)
     if (err == 0)
         return err;
 
-    kprintf("%hIDE ERROR: %h", RED, DEFAULT_FG);
-    if (err == 1) {kprintf("- Device Fault\n    "); err = 19;}
+    // kprintf("%hIDE ERROR: %h", RED, DEFAULT_FG);
+    if (err == 1) {// kprintf("- Device Fault\n    "); 
+    err = 19;}
     else if (err == 2)
     {
         uint8_t st = ide_read(ide_devices[drive].channel, ATA_REG_ERROR);
-        if (st & ATA_ER_AMNF)  {kprintf("- No Address Mark Found\n  "); err = 7;}
-        if (st & ATA_ER_TK0NF) {kprintf("- No Media or Media Error\n  "); err = 3;}
-        if (st & ATA_ER_ABRT)  {kprintf("- Command Aborted\n  "); err = 20;}
-        if (st & ATA_ER_MCR)   {kprintf("- No Media or Media Error\n  "); err = 3;}
-        if (st & ATA_ER_IDNF)  {kprintf("- ID mark not Found\n  "); err = 21;}
-        if (st & ATA_ER_MC)    {kprintf("- No Media or Media Error\n  "); err = 3;}
-        if (st & ATA_ER_UNC)   {kprintf("- Uncorrectable Data Error\n  "); err = 22;}
-        if (st & ATA_ER_BBK)   {kprintf("- Bad Sectors\n  "); err = 13;}
-    } else if (err == 3)       {kprintf("- Reads Nothing\n  "); err = 23;}
-      else if (err == 4)       {kprintf("- Write Protected\n    "); err = 8;}
+        if (st & ATA_ER_AMNF)  { // kprintf("- No Address Mark Found\n  "); 
+        err = 7;}
+        if (st & ATA_ER_TK0NF) { // kprintf("- No Media or Media Error\n  "); 
+        err = 3;}
+        if (st & ATA_ER_ABRT)  { // kprintf("- Command Aborted\n  "); 
+        err = 20;}
+        if (st & ATA_ER_MCR)   { // kprintf("- No Media or Media Error\n  "); 
+        err = 3;}
+        if (st & ATA_ER_IDNF)  { // kprintf("- ID mark not Found\n  "); 
+        err = 21;}
+        if (st & ATA_ER_MC)    { // kprintf("- No Media or Media Error\n  "); 
+        err = 3;}
+        if (st & ATA_ER_UNC)   { // kprintf("- Uncorrectable Data Error\n  "); 
+        err = 22;}
+        if (st & ATA_ER_BBK)   { // kprintf("- Bad Sectors\n  "); 
+        err = 13;}
+    } else if (err == 3)       { // kprintf("- Reads Nothing\n  "); 
+    err = 23;}
+      else if (err == 4)       { // kprintf("- Write Protected\n    "); 
+      err = 8;}
     
-    kprintf("- [");
-    kprintf((const char *[]){"Primary", "Secondary"}[ide_devices[drive].channel]);
-    kprintf(" ");;
-    kprintf((const char *[]){"Master", "Slave"}[ide_devices[drive].drive]);
-    kprintf("] ");
-    kprintf(ide_devices[drive].model);
+    // kprintf("- [");
+    // kprintf((const char *[]){"Primary", "Secondary"}[ide_devices[drive].channel]);
+    // kprintf(" ");;
+    // kprintf((const char *[]){"Master", "Slave"}[ide_devices[drive].drive]);
+    // kprintf("] ");
+    // kprintf(ide_devices[drive].model);
 
     return err;
 }
@@ -259,11 +270,11 @@ void ide_init(uint32_t bar0, uint32_t bar1, uint32_t bar2, uint32_t bar3, uint32
                     memcpy((void*)unit, (void*)"KiB - ", 7);
                 }
 
-                kprintf(" Found %h%s%h Drive %h%d%s %h%s%h\n", PURPLE, (const char *[]){"ATA", "ATAPI"}[ide_devices[i].type], DEFAULT_FG, ORANGE, size, unit, DODGERBLUE, ide_devices[i].model, DEFAULT_FG);
+                // kprintf(" Found %h%s%h Drive %h%d%s %h%s%h\n", PURPLE, (const char *[]){"ATA", "ATAPI"}[ide_devices[i].type], DEFAULT_FG, ORANGE, size, unit, DODGERBLUE, ide_devices[i].model, DEFAULT_FG);
             }
         }
 
-        if(devs == 0) kprintf("%hNo ATA drives found.%h\n", RED, DEFAULT_FG);
+        //if(devs == 0) // kprintf("%hNo ATA drives found.%h\n", RED, DEFAULT_FG);
     }
 }
 

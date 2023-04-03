@@ -25,7 +25,7 @@ port_info_t *active_ports()
 
 void init_ahci()
 {
-    kprintf("Checking for AHCI device.\n");
+    // kprintf("Checking for AHCI device.\n");
     pci_common_t device;
     for(size_t i = 0; i < MAX_DEVICES; i++)
     {
@@ -36,7 +36,7 @@ void init_ahci()
     }
     if(PCI_COMBINE_CLASS(device.class_code, device.subclass) != 0x0106)
     {
-        kprintf("%hAHCI Error:%h No Serial ATA Controller found.\n", RED, DEFAULT_FG);
+        // kprintf("%hAHCI Error:%h No Serial ATA Controller found.\n", RED, DEFAULT_FG);
         return;
     }
 
@@ -71,13 +71,13 @@ void init_ahci()
                 {
                     memcpy((void*)unit, (void*)"KiB", 4);
                 }
-                kprintf("Initalised drive: %h%s%h\n\tport %h%d%h, size: %h%d%s%h\n", DODGERBLUE, device.model, DEFAULT_FG, ORANGE, i, DEFAULT_FG, ORANGE, size, unit, DEFAULT_FG);
+                // kprintf("Initalised drive: %h%s%h\n\tport %h%d%h, size: %h%d%s%h\n", DODGERBLUE, device.model, DEFAULT_FG, ORANGE, i, DEFAULT_FG, ORANGE, size, unit, DEFAULT_FG);
             }
             break;
         }
     }
 
-	kprintf("AHCI init finished. %h%d%h port(s) found.\n", ORANGE, nports, DEFAULT_FG);
+	// kprintf("AHCI init finished. %h%d%h port(s) found.\n", ORANGE, nports, DEFAULT_FG);
 }
 
 void probe_ports(HBA_MEM *abar)
@@ -90,19 +90,19 @@ void probe_ports(HBA_MEM *abar)
             // switch(dt)
             // {
             //     case AHCI_DEV_SATA:
-            //         kprintf("SATA drive found at port %d\n", i);
+            //         // kprintf("SATA drive found at port %d\n", i);
             //         break;
             //     case AHCI_DEV_SATAPI:
-            //         kprintf("SATAPI drive found at port %d\n", i);
+            //         // kprintf("SATAPI drive found at port %d\n", i);
             //         break;
             //     case AHCI_DEV_SEMB:
-            //         kprintf("SEMB drive found at port %d\n", i);
+            //         // kprintf("SEMB drive found at port %d\n", i);
             //         break;
             //     case AHCI_DEV_PM:
-            //         kprintf("PM drive found at port %d\n", i);
+            //         // kprintf("PM drive found at port %d\n", i);
             //         break;
             //     default:
-            //         kprintf("No drive found at port %d\n", i);
+            //         // kprintf("No drive found at port %d\n", i);
             //         break;
             // }
             
@@ -241,7 +241,7 @@ bool send_command(HBA_PORT *port, HBA_PRDT_ENTRY *prdt, uint16_t prdtl, FIS_REG_
 	}
 	if (spin == 1000000)
 	{
-		kprintf("Port is hung\n");
+		// kprintf("Port is hung\n");
 		return false;
 	}
  
@@ -256,7 +256,7 @@ bool send_command(HBA_PORT *port, HBA_PRDT_ENTRY *prdt, uint16_t prdtl, FIS_REG_
 			break;
 		if (port->is & HBA_PxIS_TFES)	// Task file error
 		{
-			kprintf("Disk error\n");
+			// kprintf("Disk error\n");
 			return false;
 		}
 	}
@@ -264,7 +264,7 @@ bool send_command(HBA_PORT *port, HBA_PRDT_ENTRY *prdt, uint16_t prdtl, FIS_REG_
 	// Check again
 	if (port->is & HBA_PxIS_TFES)
 	{
-		kprintf("Disk error\n");
+		// kprintf("Disk error\n");
 		return false;
 	}
  
@@ -437,6 +437,6 @@ int find_cmdslot(HBA_PORT *port)
 			return i;
 		slots >>= 1;
 	}
-	kprintf("Cannot find free command list entry\n");
+	// kprintf("Cannot find free command list entry\n");
 	return -1;
 }

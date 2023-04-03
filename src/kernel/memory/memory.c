@@ -38,7 +38,7 @@ void *request_page(void *addr) // FIXME: faulty
 
     if(((uint64_t)table_end - (uint64_t)get_page_table()) / 8 >= 512 * (L2_TABLES - 1)) 
     {
-        kprintf("%hOut of pages.%h\n", RED, DEFAULT_FG);
+        // kprintf("%hOut of pages.%h\n", RED, DEFAULT_FG);
         serial_str("OUT OF PAGES\n");
         return -1;
     }

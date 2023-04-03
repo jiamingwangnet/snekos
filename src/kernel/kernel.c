@@ -42,9 +42,9 @@ void kernel_main()
     serial_print_blocks();
 
 
-    void *addr = request_memory(0x2000);
-    *(char*)addr = 'D';
-    serial_char(*(char*)(addr));
+    // void *addr = request_memory(0x2000);
+    // *(char*)addr = 'D';
+    // serial_char(*(char*)(addr));
 
     // kprintf(
     //     "%h  ____             _     ___  ____  \n"
@@ -68,7 +68,7 @@ void kernel_main()
     // extern uint32_t *color_memory;
     // kprintf("0x%x\n", color_memory);
 
-    enable_input();
+    // enable_input();
 
     // for(int i = 0; i < 10000; i++) //133033984
     // {

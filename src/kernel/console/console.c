@@ -40,11 +40,13 @@ static char *buffer_ptr = input_buffer;
 
 // stores the terminal text
 static char *con_memory;
+// static char con_memory[0x200000];
 static char *mem_end;
 static size_t con_memory_size = 0x200000; // TODO: implement this fully, this caused a lot of errors
 
 // TODO: store color and character together in a single uint32_t: char * 0x1000000 + color   example: char: 0x64 color: 0x34e832 together: 0x6434e832
 static uint32_t color_memory[0x200000]; // TODO: make more memory efficient solution
+// static uint32_t *color_memory; // TODO: make more memory efficient solution
 static uint32_t *cmem_end;
 
 inline void expand_cmem()
@@ -58,7 +60,7 @@ inline void expand_cmem()
 
 void enable_input()
 {
-    kprintf(cmdtxt);
+    // kprintf(cmdtxt);
     input_mode = true;
 }
 
@@ -86,9 +88,11 @@ void init_console(uint32_t sx, uint32_t sy, uint32_t fg, uint32_t bg)
     attach_keyboard(console_keyboard);
 
     fill_screen(background);
-    serial_print_blocks();
-    con_memory = (char*)kmalloc(sizeof(char) * con_memory_size); // FIXME: causes #GP
-    // color_memory = (uint32_t*)kmalloc(sizeof(uint32_t) * con_memory_size);
+    // serial_print_blocks();
+    // using a different size like sizeof(uint32_t removes the fault)
+    // allocating con_memory_size causes fault
+    con_memory = (char*)kmalloc(con_memory_size); // FIXME: causes #GP
+    // color_memory = (uint32_t*)kmalloc(sizeof(uint32_t) * con_memory_size); // this does not cause #GP
 
     mem_end = con_memory; 
     cmem_end = color_memory;
@@ -100,7 +104,11 @@ void init_console(uint32_t sx, uint32_t sy, uint32_t fg, uint32_t bg)
     max_cols = (tagfb.common.framebuffer_width - x) / (PSF1_WIDTH + col_pad) - 1;
     max_rows = (tagfb.common.framebuffer_height - y) / (font->charsize + line_pad) - 1;
 
-    console_loop();
+
+    /*
+        calling kprintf and changing con_memory before allocation and calling this function may cause #GP
+    */
+    console_loop(); // FIXME: malloc is fine this causes #GP
 }
 
 void set_color(uint32_t color)
@@ -242,7 +250,7 @@ void handle_commands()
             return;
         }
     }
-    kprintf("%hError: \"%s\" command not found.%h\n", RED, name, DEFAULT_FG);
+    // kprintf("%hError: \"%s\" command not found.%h\n", RED, name, DEFAULT_FG);
 
     enable_input();
 }
@@ -252,7 +260,7 @@ void enter()
     // PSF1_font* font = get_font();
     // clear cursor
     // draw_rect(col * (PSF1_WIDTH + col_pad) + x, row * (font->charsize + line_pad) + y, PSF1_WIDTH + col_pad, font->charsize + line_pad, background);
-    kprintf("\n");
+    // kprintf("\n");
     input_mode = false;
 
     // run command
@@ -267,7 +275,7 @@ void console_keyboard(Key_Info info)
     if(!info.release && !info.modifier)
     {
         const char keystr[2] = {info.key, 0};
-        kprintf(keystr);
+        // kprintf(keystr);
         append_buffer(info.key);
     }
     else if(!info.release && info.modifier && info.key == ENTER)
@@ -369,7 +377,7 @@ void draw_cursor(uint32_t col, uint32_t row)
 void console_loop()
 {
     if(!update_console) return;
-
+    serial_str("hello");
     run_pending_command();
     PSF1_font* font = get_font();
     fill_screen(background);

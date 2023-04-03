@@ -134,7 +134,7 @@ void pci_check_all_busses()
         }
     }
 
-    kprintf("Checked PCI devices.\n");
+    // kprintf("Checked PCI devices.\n");
 }
 
 pci_common_t *pci_get_device_list()

@@ -102,7 +102,7 @@ size_t get_next_block()
 
     if(next_block < total_blocks) return next_block;
 
-    kprintf("%hOut of memory.%h\n", RED, DEFAULT_FG);
+    // kprintf("%hOut of memory.%h\n", RED, DEFAULT_FG);
     serial_str("OUT OF MEMORY\n");
     return (size_t)-1;
 }
@@ -161,7 +161,7 @@ void *allocate_size(size_t size) // TODO: Make faster, very inefficient
         }
     }
 
-    kprintf("%hOut of memory.%h\n", RED, DEFAULT_FG);
+    // kprintf("%hOut of memory.%h\n", RED, DEFAULT_FG);
     serial_str("OUT OF MEMORY\n");
     return (size_t)-1;
 }
