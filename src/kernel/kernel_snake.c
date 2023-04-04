@@ -10,6 +10,7 @@
 #include "include/memory/kmalloc.h"
 #include "include/drivers/pci.h"
 #include "console/apps/snake.h"
+#include "include/memory/pmm.h"
 
 void kernel_main()
 {
@@ -17,6 +18,9 @@ void kernel_main()
 
     init_serial();
     init_idt();
+
+    init_pmm();
+
     init_font();
 
     init_timer();
