@@ -4,6 +4,7 @@
 #include "../include/memory/kmalloc.h"
 #include "../include/console/commands.h"
 #include "../include/memory/memory.h"
+#include "../include/io/serial.h"
 #include <stdarg.h>
 
 static uint32_t foreground = 0xffffff;
@@ -24,6 +25,7 @@ const uint32_t col_pad = 1;
 static const char* cmdtxt = "| KERNEL CMD :> ";
 static bool input_mode = false;
 static bool update_console = false;
+static bool has_initalised = false;
 
 struct pending_command_t {
     cmd_func command;
@@ -39,13 +41,13 @@ static char *buffer_ptr = input_buffer;
 #define TAB_WDITH 4
 
 // stores the terminal text
-static char *con_memory;
-static char *mem_end;
+static char *con_memory = NULL;
+static char *mem_end = NULL;
 static size_t con_memory_size = 0x200000; // TODO: implement this fully, this caused a lot of errors
 
 // TODO: store color and character together in a single uint32_t: char * 0x1000000 + color   example: char: 0x64 color: 0x34e832 together: 0x6434e832
-static uint32_t *color_memory; // TODO: make more memory efficient solution
-static uint32_t *cmem_end;
+static uint32_t *color_memory = NULL; // TODO: make more memory efficient solution
+static uint32_t *cmem_end = NULL;
 
 inline void expand_cmem()
 {
@@ -87,8 +89,11 @@ void init_console(uint32_t sx, uint32_t sy, uint32_t fg, uint32_t bg)
 
     fill_screen(background);
 
-    con_memory = (char*)kmalloc(sizeof(char) * con_memory_size);
+    con_memory = (char*)kmalloc(con_memory_size); // sizeof(uint32_t) * con_memory_size works
     color_memory = (uint32_t*)kmalloc(sizeof(uint32_t) * con_memory_size);
+
+    memset((void*)con_memory, 0, con_memory_size); // makes sure that con_memory will always be a null terminated string
+    memset((void*)color_memory, 0, sizeof(uint32_t) * con_memory_size);
 
     mem_end = con_memory;
     cmem_end = color_memory;
@@ -101,6 +106,8 @@ void init_console(uint32_t sx, uint32_t sy, uint32_t fg, uint32_t bg)
     max_rows = (tagfb.common.framebuffer_height - y) / (font->charsize + line_pad) - 1;
 
     console_loop();
+
+    has_initalised = true;
 }
 
 void set_color(uint32_t color)
@@ -139,6 +146,12 @@ void decrease_buffer()
 
 void backspace()
 {
+    if(!has_initalised)
+    {
+        serial_str("WARNING: mem_end accessed before console memory allocation. The function will now return.\n");
+        return;
+    }
+
     // PSF1_font* font = get_font();
     decrease_buffer();
     *--mem_end = 0;
@@ -287,6 +300,7 @@ void console_keyboard(Key_Info info)
 
 void kprintch(char c)
 {
+    serial_char(c);
     *mem_end++ = c;
     *cmem_end++ = foreground;
     update_console = true;
@@ -294,6 +308,13 @@ void kprintch(char c)
 
 void kprintf(const char *str, ...) // only allows specifier character
 {
+    // safety check
+    if(!has_initalised)
+    {
+        serial_str("WARNING: kprintf called before console memory allocation. The function will now return.\n");
+        return;
+    }
+
     va_list args;
     va_start(args, strlen(str));
 
@@ -355,6 +376,12 @@ void kprintf(const char *str, ...) // only allows specifier character
 
 void goto_line_start()
 {
+    if(!has_initalised)
+    {
+        serial_str("WARNING: mem_end accessed before console memory allocation. The function will now return.\n");
+        return;
+    }
+
     if(mem_end == con_memory) return;
     mem_end--;
     cmem_end--;
@@ -373,7 +400,7 @@ void draw_cursor(uint32_t col, uint32_t row)
 
 void console_loop()
 {
-    if(!update_console) return;
+    if(!update_console || !has_initalised) return;
 
     run_pending_command();
     PSF1_font* font = get_font();

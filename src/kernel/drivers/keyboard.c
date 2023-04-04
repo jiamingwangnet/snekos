@@ -28,7 +28,7 @@ key_callback_t *callback_end = callbacks;
 void init_keyboard()
 {
     add_handler(IRQ1, &handle_key);
-    kprintf("Initialised keyboard.\n");
+    // kprintf("Initialised keyboard.\n");
 }
 
 void attach_keyboard(key_callback_t callback)

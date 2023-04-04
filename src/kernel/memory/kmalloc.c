@@ -89,7 +89,7 @@ void *kmalloc(size_t size)
 {
     if(size == 0) return NULL;
 
-    size = align(size);
+    size = ALIGN_ADDR(size, ALIGNMENT);
     mem_block_t *current = heap_start;
     size_t real_size = size + sizeof(mem_block_t);
 
@@ -122,7 +122,7 @@ void *kmalloc(size_t size)
 
 void kfree(void *ptr)
 {
-    if(ptr == NULL || ptr < heap_start || ptr > heap_end) return;
+    if(ptr == NULL || (uint64_t)ptr < (uint64_t)heap_start || (uint64_t)ptr > (uint64_t)heap_end + heap_end->size) return;
 
     mem_block_t *current = heap_start;
     while(current != NULL)
@@ -137,10 +137,10 @@ void kfree(void *ptr)
     }
 }
 
-size_t align(size_t size)
-{
-    return (size / ALIGNMENT + 1) * ALIGNMENT;
-}
+// size_t align(size_t size)
+// {
+//     return (size / ALIGNMENT + 1) * ALIGNMENT;
+// }
 
 void expand_heap(size_t size)
 {

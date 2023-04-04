@@ -22,8 +22,8 @@ typedef struct mem_block_t
     struct mem_block_t *next;
 } mem_block_t;
 
-// sets the size to a multiple of a value (currently 16)
-size_t align(size_t size);
+// // sets the size to a multiple of a value (currently 16)
+// size_t align(size_t size);
 
 void init_heap();
 
